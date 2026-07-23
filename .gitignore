@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.cdk.staging/
+cdk.out/
+*.js
+!jest.config.js
+!esbuild*.*
+*.d.ts
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+test/fixtures/live/
+.claude/
+.cachebro/
+.DS_Store
+package-lock.json

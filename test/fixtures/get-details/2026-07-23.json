@@ -1,0 +1,86 @@
+{
+  "_meta": {
+    "note": "Synthetic fixture for the golden-master test. Replace with a real capture via `npm run capture -- get-details 1614908485455733264`.",
+    "listingId": 1614908485455733264,
+    "capturedAt": "2026-07-23"
+  },
+  "data": {
+    "presentation": {
+      "stayProductDetailPage": {
+        "id": "U3RheUxpc3Rpbmc6MTYxNDkwODQ4NTQ1NTczMzI2NA==",
+        "sections": {
+          "metadata": {
+            "loggingContext": {
+              "eventDataLogging": {
+                "listingLat": 41.9981,
+                "listingLng": 21.4254,
+                "isSuperhost": true,
+                "homeTier": 1,
+                "personCapacity": 5,
+                "roomType": "Entire home/apt",
+                "starRating": 4.9,
+                "visibleReviewCount": 19
+              }
+            }
+          },
+          "sections": [
+            {
+              "__typename": "PdpTitleSection",
+              "title": "Cozy Apartment in Skopje Center"
+            },
+            {
+              "__typename": "PdpDescriptionSection",
+              "description": { "htmlText": "A bright apartment in the heart of Skopje." }
+            },
+            {
+              "__typename": "HostProfileSection",
+              "hostAvatar": { "userID": "VXNlcjoxMjM0NTY=", "name": "Maja" },
+              "hostProfileDescription": { "htmlText": "Superhost from Macedonia." }
+            },
+            {
+              "__typename": "PhotoTourModalSection",
+              "photos": [
+                { "picture": "https://a0.muscache.com/im/pictures/1.jpg", "caption": "Living room" },
+                { "picture": "https://a0.muscache.com/im/pictures/2.jpg", "caption": "Bedroom" }
+              ]
+            },
+            {
+              "__typename": "PoliciesSection",
+              "houseRules": {
+                "general": [
+                  { "title": "During your stay", "values": ["No smoking", "No pets"] }
+                ]
+              }
+            },
+            {
+              "__typename": "LocationSection",
+              "seeAllLocations": [
+                { "title": "Getting around", "content": "5 min walk to the main square." }
+              ]
+            },
+            {
+              "__typename": "PdpHighlightsSection",
+              "highlights": [
+                { "title": "Great location", "subtitle": "95% of guests gave 5 stars" }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "node": {
+      "pdpPresentation": {
+        "amenities": {
+          "seeAllAmenitiesGroups": [
+            {
+              "title": "Scenic views",
+              "values": [
+                { "title": "Mountain view", "subtitle": "", "available": true }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

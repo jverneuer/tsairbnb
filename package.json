@@ -1,0 +1,38 @@
+{
+  "name": "tsairbnb",
+  "version": "0.1.0",
+  "private": false,
+  "description": "TypeScript reimplementation of pyairbnb: a robust, always-JSON HTTP wrapper around Airbnb, deployed as a Lambda behind CloudFront.",
+  "license": "MIT",
+  "type": "module",
+  "author": "tsairbnb contributors",
+  "keywords": ["airbnb", "scraper", "graphql", "lambda", "cloudfront", "cdk"],
+  "engines": { "node": ">=20" },
+  "main": "dist/lambda.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node20 --outfile=dist/lambda.js --external:@aws-sdk/*",
+    "build:watch": "esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node20 --outfile=dist/lambda.js --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "capture": "tsx scripts/capture-fixture.ts",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "diff": "cdk diff"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ssm": "^3.658.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.142",
+    "@types/node": "^20.14.0",
+    "aws-cdk-lib": "^2.160.0",
+    "constructs": "^10.3.0",
+    "esbuild": "^0.23.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
