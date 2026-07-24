@@ -1,5 +1,5 @@
 /**
- * Lambda bootstrap: load runtime config from SSM (/tsairbnb/endpoint-config) and apply.
+ * Lambda bootstrap: load runtime config from SSM (/tsairbnb/<region>/endpoint-config) and apply.
  * Falls back to local defaults (already loaded) on any failure so the function still boots.
  * Cached for the container lifetime; refresh on a schedule if you want hot config.
  */
@@ -13,7 +13,7 @@ export async function initFromSsm(): Promise<void> {
     const { SSMClient, GetParameterCommand } = await import("@aws-sdk/client-ssm");
     const region = process.env.AWS_REGION ?? process.env.CDK_DEFAULT_REGION ?? "us-east-1";
     const client = new SSMClient({ region });
-    const out = await client.send(new GetParameterCommand({ Name: "/tsairbnb/endpoint-config" }));
+    const out = await client.send(new GetParameterCommand({ Name: `/tsairbnb/${region}/endpoint-config` }));
     const value = out.Parameter?.Value;
     if (value) {
       const { loadConfig } = await import("./load.js");

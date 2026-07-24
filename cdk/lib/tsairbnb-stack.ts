@@ -73,10 +73,12 @@ export class TsairbnbStack extends Stack {
     });
 
     // ---- Config in SSM (hot-editable: UA pool, locale, hashes) ----
+    // Region-scoped to avoid conflicts in multi-region deployments.
+    const region = Stack.of(this).region;
     new ssm.StringParameter(this, "ConfigEndpoint", {
-      parameterName: "/tsairbnb/endpoint-config",
+      parameterName: `/tsairbnb/${region}/endpoint-config`,
       stringValue: configParams(),
-      description: "tsairbnb runtime config — JSON: userAgents, locale, currency, hashOverrides",
+      description: `tsairbnb runtime config (${region}) — JSON: userAgents, locale, currency, hashOverrides`,
       tier: ssm.ParameterTier.STANDARD,
     });
 
