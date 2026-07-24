@@ -16,11 +16,12 @@ export async function initFromSsm(): Promise<void> {
     const out = await client.send(new GetParameterCommand({ Name: `/tsairbnb/${region}/endpoint-config` }));
     const value = out.Parameter?.Value;
     if (value) {
+      console.log("[ssm] loaded config from", `/tsairbnb/${region}/endpoint-config`);
       const { loadConfig } = await import("./load.js");
       loadConfig(JSON.parse(value));
     }
   } catch (e) {
-    // swallow — defaults are already loaded
+    console.error("[ssm] failed to bootstrap, using defaults:", (e as Error).message);
   } finally {
     bootstrapped = true;
   }

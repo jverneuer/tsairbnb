@@ -17,7 +17,9 @@ const BINARY = "curl-impersonate-chrome";
 export class CurlImpersonateClient implements HttpClient {
   async request(req: HttpRequest): Promise<HttpResponse> {
     const args = this.buildArgs(req);
+    console.log("[curl] request:", JSON.stringify({ method: req.method, url: req.url }));
     const { status, stdout, cookieHeader, effectiveUrl } = await run(BINARY, args, req.body, getConfig().timeoutMs);
+    console.log("[curl] response:", JSON.stringify({ status, effectiveUrl, bodyLength: stdout.length }));
 
     // curl-impersonate writes Set-Cookie to a jar (-c flag); parse it.
     const cookies = cookieHeader ? parseCookieJar(cookieHeader) : {};
