@@ -35,11 +35,11 @@ describe("domain", () => {
   });
 
   it("baseUrl builds www.airbnb.com by default", () => {
-    expect(baseUrl()).toBe("https://www.airbnb.com/");
+    expect(baseUrl()).toBe("https://www.airbnb.com");
   });
 
   it("baseUrl builds custom domain", () => {
-    expect(baseUrl("airbnb.ie")).toBe("https://www.airbnb.ie/");
+    expect(baseUrl("airbnb.ie")).toBe("https://www.airbnb.ie");
   });
 
   it("extractDomain returns domain for valid airbnb URL", () => {

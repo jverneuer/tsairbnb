@@ -43,6 +43,15 @@ export class TsairbnbStack extends Stack {
       }),
     });
 
+    // Grant Lambda SSM read access for its region-scoped config
+    const ssmParamName = `/tsairbnb/${Stack.of(this).region}/endpoint-config`;
+    fn.role?.addToPrincipalPolicy(
+      new cdk.aws_iam.PolicyStatement({
+        actions: ["ssm:GetParameter"],
+        resources: [cdk.Arn.format({ service: "ssm", resource: "parameter", resourceName: ssmParamName, region: "", account: "" }, this)],
+      }),
+    );
+
     const fnUrl = fn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
       invokeMode: lambda.InvokeMode.BUFFERED,

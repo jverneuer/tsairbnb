@@ -135,7 +135,7 @@ export function domainDefaults(domain: string): { locale: string; acceptLanguage
  */
 export function baseUrl(domain?: string): string {
   const d = domain ?? "airbnb.com";
-  return `https://www.${d}/`;
+  return `https://www.${d}`;
 }
 
 /**
