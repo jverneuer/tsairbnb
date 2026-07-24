@@ -2,14 +2,6 @@
 
 TypeScript port of pyairbnb — deployed as Lambda containers behind CloudFront. Scrapes Airbnb listings, search results, reviews, calendar, pricing, and experiences. Uses curl-impersonate for TLS fingerprint matching.
 
-## Base URLs
-
-| Region | CloudFront URL |
-|--------|---------------|
-| US (us-east-1) | `https://d3mbc9ncvbj4ez.cloudfront.net` |
-| UK (eu-west-2) | `https://dnnydnmadi0bh.cloudfront.net` |
-| Ireland (eu-west-1) | `https://d2mazewd2d5gn1.cloudfront.net` |
-
 ## Request Format
 
 All endpoints are GET requests with query-string parameters. POST body supported for `raw` in reprocess mode.
