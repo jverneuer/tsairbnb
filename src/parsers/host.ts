@@ -60,7 +60,7 @@ export const hostListingsStrategies: ParserStrategy<{ listings: unknown[]; count
     name: "beehive-listings",
     detect: (raw) => Array.isArray(path(raw, LISTINGS_PATH)),
     parse: (raw, warnings) => {
-      const listings = (path(raw, LISTINGS_PATH) ?? []) as unknown[];
+      const listings = path(raw, LISTINGS_PATH) as unknown[];
       if (listings.length === 0) warnings.push("beehive-listings: empty listings array");
       return { listings, count: listings.length };
     },

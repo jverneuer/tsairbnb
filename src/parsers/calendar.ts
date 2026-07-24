@@ -16,7 +16,7 @@ export const calendarStrategies: ParserStrategy<readonly CalendarMonth[]>[] = [
     name: "pdp-availability",
     detect: (raw) => Array.isArray(path(raw, CAL_PATH)),
     parse: (raw, warnings) => {
-      const months = (path(raw, CAL_PATH) ?? []) as unknown[];
+      const months = path(raw, CAL_PATH) as unknown[];
       const out = months.map((m) => {
         const days = ((path(m, "days") ?? []) as unknown[]).map((d) => ({
           date: String(path(d, "date") ?? ""),

@@ -19,7 +19,7 @@ export const searchStrategies: ParserStrategy<{ readonly hits: readonly SearchHi
     name: "stays-search",
     detect: (raw) => Array.isArray(path(raw, RESULTS_PATH)),
     parse: (raw, warnings) => {
-      const results = (path(raw, RESULTS_PATH) ?? []) as unknown[];
+      const results = path(raw, RESULTS_PATH) as unknown[];
       const hits = results
         .filter((r) => {
           const t = path(r, "__typename");

@@ -16,7 +16,7 @@ export const reviewStrategies: ParserStrategy<readonly Review[]>[] = [
     name: "p3-reviews",
     detect: (raw) => Array.isArray(path(raw, REVIEWS_PATH)),
     parse: (raw, warnings) => {
-      const arr = (path(raw, REVIEWS_PATH) ?? []) as unknown[];
+      const arr = path(raw, REVIEWS_PATH) as unknown[];
       const out: readonly Review[] = arr.map((r) => {
         const responsesRaw = path(r, "responses") ?? [];
         const responses = (Array.isArray(responsesRaw) ? responsesRaw : []).map((resp) => ({

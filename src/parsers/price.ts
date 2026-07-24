@@ -17,7 +17,7 @@ export const priceStrategies: ParserStrategy<PriceQuote>[] = [
     name: "stays-pdp-sections",
     detect: (raw) => Array.isArray(path(raw, SECTIONS_PATH)),
     parse: (raw, warnings) => {
-      const sections = (path(raw, SECTIONS_PATH) ?? []) as unknown[];
+      const sections = path(raw, SECTIONS_PATH) as unknown[];
       const sidebar = sections.find((s) => path(s, "sectionId") === "BOOK_IT_SIDEBAR");
       if (!sidebar) {
         warnings.push("stays-pdp-sections: no BOOK_IT_SIDEBAR section");
