@@ -28,7 +28,10 @@
     "capture": "tsx scripts/capture-fixture.ts",
     "cdk": "cdk",
     "synth": "cdk synth",
-    "deploy": "cdk deploy",
+    "deploy": "cdk deploy --require-approval never",
+    "deploy:eu": "AWS_DEFAULT_REGION=eu-west-1 cdk deploy --require-approval never TsairbnbStackEuWest1",
+    "deploy:us": "AWS_DEFAULT_REGION=us-east-1 cdk deploy --require-approval never TsairbnbStackUsEast1",
+    "deploy:all": "npm run deploy:eu && npm run deploy:us",
     "diff": "cdk diff"
   },
   "dependencies": {

@@ -30,7 +30,6 @@ export class CurlImpersonateClient implements HttpClient {
     const args = [
       "-s",
       "-S", // silent but show errors
-      "-L", // follow redirects (Airbnb domain-switch redirects)
       "-X",
       req.method ?? "GET",
       "-w",
