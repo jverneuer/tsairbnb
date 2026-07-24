@@ -124,7 +124,10 @@ export function createPaginatedEndpoint<TPublic, TItem, TRaw extends z.ZodTypeAn
       all.push(...config.extractItems(parsed.data));
       if (config.shouldStop?.(parsed.data, page)) break;
       cursor = config.getNextCursor(parsed.data);
-      if (cursor === null) break;
+      if (cursor === null) {
+        // No cursor and no shouldStop → offset pagination, stop after first page.
+        if (!config.shouldStop) break;
+      }
     }
 
     emit({ t: "parse", endpoint: config.name, parserVersion, warnings, durationMs: 0 });

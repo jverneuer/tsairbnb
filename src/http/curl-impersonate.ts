@@ -61,7 +61,7 @@ export function setClient(c: HttpClient): void {
   client = c;
 }
 
-function run(
+export function run(
   bin: string,
   args: string[],
   body: string | undefined,
@@ -89,7 +89,7 @@ function run(
 }
 
 /** curl-impersonate interleaves the cookie jar (-c -) with headers (-D -) + body. Demux. */
-function demux(stdout: string): { status: number; body: string; cookies: string } {
+export function demux(stdout: string): { status: number; body: string; cookies: string } {
   // Status line from -w trailer
   const statusMatch = stdout.match(/__HTTP_STATUS__:(\d+)/);
   const status = statusMatch ? Number(statusMatch[1]) : 200;
@@ -107,7 +107,7 @@ function demux(stdout: string): { status: number; body: string; cookies: string 
   return { status, body, cookies: cookieLines };
 }
 
-function parseCookieJar(jar: string): Record<string, string> {
+export function parseCookieJar(jar: string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const line of jar.split("\n")) {
     if (!line || line.startsWith("#")) continue;

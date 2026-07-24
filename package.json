@@ -7,14 +7,17 @@
   "type": "module",
   "author": "tsairbnb contributors",
   "keywords": ["airbnb", "scraper", "graphql", "lambda", "cloudfront", "cdk"],
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=24"
+  },
   "main": "dist/lambda.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node20 --outfile=dist/lambda.js --external:@aws-sdk/*",
+    "build": "tsc --noEmit && esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node24 --outfile=dist/lambda.js --external:@aws-sdk/*",
     "build:watch": "esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node20 --outfile=dist/lambda.js --watch",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "capture": "tsx scripts/capture-fixture.ts",
     "cdk": "cdk",
     "synth": "cdk synth",
@@ -23,16 +26,17 @@
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.658.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.142",
-    "@types/node": "^20.14.0",
+    "@types/node": "^24.0.0",
     "aws-cdk-lib": "^2.160.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.23.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.10"
   }
 }

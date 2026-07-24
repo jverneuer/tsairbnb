@@ -1,5 +1,5 @@
 # tsairbnb Lambda container image.
-# Bundles the Node 20 runtime + the curl-impersonate TLS-impersonation binary.
+# Bundles the Node 24 runtime + the curl-impersonate TLS-impersonation binary.
 #
 # curl-impersonate is what pyairbnb's `curl_cffi(impersonate="chrome124")` wraps under
 # the hood. Node's built-in fetch/undici emit a non-browser JA3/H2 fingerprint and get
@@ -9,7 +9,7 @@
 # platform (linux/amd64 or linux/arm64) — set TARGETPLATFORM via docker build --platform.
 # See ATTRIBUTION.md for the curl-impersonate source.
 
-FROM --platform=${TARGETPLATFORM} public.ecr.aws/lambda/nodejs:20 AS base
+FROM --platform=${TARGETPLATFORM} public.ecr.aws/lambda/nodejs:24 AS base
 
 # --- install curl-impersonate (chrome124 profile) ---
 ARG CURL_IMPERSONATE_VERSION=0.8.0

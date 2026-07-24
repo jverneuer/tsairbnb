@@ -46,7 +46,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     }
   }
 
-  const result = await dispatch({ endpoint, mode, raw, ...qs });
+  const { raw: _rawQs, ...qsRest } = qs;
+  const result = await dispatch({ endpoint, mode, raw, ...qsRest });
   const status = result.ok ? 200 : result.code === "input" ? 400 : result.code === "block" ? 403 : 502;
   return json(status, result);
 }

@@ -32,7 +32,7 @@ export const hostProfileStrategies: ParserStrategy<HostProfile>[] = [
           : null,
         listingsCount: typeof listingsCountRaw === "number" ? listingsCountRaw : null,
       };
-      if (profile.name === null) warnings.push("user-profile: name missing");
+      if (profile.name == null) warnings.push("user-profile: name missing");
       return profile;
     },
   },
@@ -45,7 +45,7 @@ export const hostProfileStrategies: ParserStrategy<HostProfile>[] = [
       const bareId = rawId !== undefined && rawId !== null ? decodeListingId(String(rawId)) : null;
       return {
         id: bareId != null ? String(bareId) : null,
-        name: path(raw, "name") as string | null,
+        name: (path(raw, "name") as string | null) ?? null,
         about: null, location: null, isSuperhost: null,
         responseRate: null, responseTime: null, listingsCount: null,
       };
