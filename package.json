@@ -21,7 +21,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node24 --outfile=dist/lambda.js --external:@aws-sdk/*",
-    "build:watch": "esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node20 --outfile=dist/lambda.js --watch",
+    "build:watch": "esbuild src/lambda.ts --bundle --platform=node --format=cjs --target=node24 --outfile=dist/lambda.js --watch",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -33,12 +33,12 @@
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.658.0",
-    "@vitest/coverage-v8": "^4.1.10",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.142",
     "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "aws-cdk": "^2.1133.0",
     "aws-cdk-lib": "^2.160.0",
     "constructs": "^10.3.0",

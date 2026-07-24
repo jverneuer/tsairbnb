@@ -21,7 +21,7 @@ export class TsairbnbStack extends Stack {
 
     const { targetPlatform, cacheTtl = Duration.minutes(10) } = props;
 
-    // ---- Lambda (container image: Node 20 + curl-impersonate) ----
+    // ---- Lambda (container image: Node 24 + curl-impersonate) ----
     const fn = new lambda.DockerImageFunction(this, "Api", {
       code: lambda.DockerImageCode.fromImageAsset(".", {
         platform: targetPlatform as unknown as cdk.aws_ecr_assets.Platform,
@@ -69,7 +69,7 @@ export class TsairbnbStack extends Stack {
           cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT,
         // ponytail: CloudFront -> Lambda Fn URL is http only; restricted via WAF + CF.
       },
-        priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
     });
 
     // ---- Config in SSM (hot-editable: UA pool, locale, hashes) ----
