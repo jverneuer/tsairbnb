@@ -23,6 +23,15 @@ describe("getApiKey", () => {
     const result = await getApiKey({ mode: "live" });
     expect(result).toEqual({ ok: false, error: "http 500", code: "http-500" });
   });
+  it("omits respondedDomain when effectiveUrl is empty", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: 'foo "api_config":{"key":"k1"} bar', effectiveUrl: "" }) } as any);
+    const result = await getApiKey({ mode: "live" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.meta.respondedDomain).toBeUndefined();
+      expect("respondedDomain" in result.meta).toBe(false);
+    }
+  });
   it("live returns error when no key on homepage", async () => {
     setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: "no key" }) } as any);
     const result = await getApiKey({ mode: "live" });

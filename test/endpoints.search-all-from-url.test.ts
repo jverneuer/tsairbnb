@@ -20,6 +20,20 @@ describe("searchAllFromUrl", () => {
     const result = await searchAllFromUrl({ mode: "reprocess", raw: { invalid: true } });
     expect(result).toMatchObject({ ok: true, data: [] });
   });
+  it("reprocess returns error when parseSearch fails", async () => {
+    vi.resetModules();
+    vi.doMock("../src/parsers/search.js", () => ({
+      parseSearch: async () => ({ error: "no-strategy-matched" }),
+    }));
+    const { searchAllFromUrl: mockedSearch } = await import("../src/endpoints/search-all-from-url.js");
+    const result = await mockedSearch({ mode: "reprocess", raw: {} });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("no-strategy-matched");
+      expect(result.code).toBe("no-strategy-matched");
+    }
+    vi.doUnmock("../src/parsers/search.js");
+  });
   it("live parses Airbnb URL and delegates to searchAll", async () => {
     setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: JSON.stringify({ data: { presentation: { staysSearch: { results: { searchResults: [] } } } } }) }) } as any);
     const result = await searchAllFromUrl({ mode: "live", url: "https://www.airbnb.com/s/Skopje?check_in=2026-07-01&check_out=2026-07-05&adults=2", apiKey: "k" });
@@ -74,5 +88,49 @@ describe("searchAllFromUrl", () => {
     await searchAllFromUrl({ mode: "live", url: "https://www.airbnb.com/s/Skopje", apiKey: "k", currency: "EUR", language: "mk" });
     expect(capturedUrl).toContain("currency=EUR");
     expect(capturedUrl).toContain("locale=mk");
+  });
+
+  it("live forwards domain to baseUrl", async () => {
+    let capturedUrl = "";
+    setClient({ request: vi.fn().mockImplementation((req: any) => {
+      if (req.url.includes("StaysSearch")) capturedUrl = req.url;
+      return Promise.resolve({ status: 200, body: JSON.stringify({ data: { presentation: { staysSearch: { results: { searchResults: [] } } } } }) });
+    }) } as any);
+    await searchAllFromUrl({ mode: "live", url: "https://www.airbnb.com/s/Skopje", apiKey: "k", domain: "airbnb.ie" });
+    expect(capturedUrl).toContain("www.airbnb.ie/");
+  });
+
+  it("live propagates HTTP errors from searchAll", async () => {
+    setClient({ request: vi.fn().mockRejectedValue(new Error("network timeout")) } as any);
+    await expect(searchAllFromUrl({ mode: "live", url: "https://www.airbnb.com/s/Skopje", apiKey: "k" })).rejects.toThrow("network timeout");
+  });
+
+  it("live non-numeric URL params produce NaN in variables", async () => {
+    let capturedUrl = "";
+    let capturedBody = "";
+    setClient({ request: vi.fn().mockImplementation((req: any) => {
+      if (req.url.includes("StaysSearch")) { capturedUrl = req.url; capturedBody = req.body ?? ""; }
+      return Promise.resolve({ status: 200, body: JSON.stringify({ data: { presentation: { staysSearch: { results: { searchResults: [] } } } } }) });
+    }) } as any);
+    await searchAllFromUrl({ mode: "live", url: "https://www.airbnb.com/s/Skopje?ne_lat=abc&price_min=xyz", apiKey: "k" });
+    // Variables are NaN in-memory but JSON.stringify(NaN) → null, so check URL query param which is stringified too
+    const urlVars = JSON.parse(new URL(capturedUrl).searchParams.get("variables")!);
+    expect(urlVars.staysSearchRequest.neLat).toBeNull();
+    expect(urlVars.staysSearchRequest.priceMin).toBeNull();
+  });
+
+  it("live URL with missing params omits those fields", async () => {
+    let capturedBody = "";
+    setClient({ request: vi.fn().mockImplementation((req: any) => {
+      if (req.url.includes("StaysSearch")) capturedBody = req.body ?? "";
+      return Promise.resolve({ status: 200, body: JSON.stringify({ data: { presentation: { staysSearch: { results: { searchResults: [] } } } } }) });
+    }) } as any);
+    await searchAllFromUrl({ mode: "live", url: "https://www.airbnb.com/s/Skopje?check_in=2026-08-01", apiKey: "k" });
+    const vars = JSON.parse(capturedBody);
+    const req = vars.variables.staysSearchRequest;
+    expect(req.checkIn).toBe("2026-08-01");
+    expect(req.checkOut).toBeUndefined();
+    expect(req.neLat).toBeUndefined();
+    expect(req.priceMin).toBeUndefined();
   });
 });

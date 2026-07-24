@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Envelope } from "./types/envelope.js";
+import { validateDomain } from "./lib/domain.js";
 
 /**
  * Dispatcher — routes ?endpoint=<name> to the handler, parses ?mode + ?raw, validates input
@@ -10,6 +11,7 @@ export interface DispatchEvent {
   endpoint: string;
   mode: "live" | "reprocess";
   raw?: unknown;
+  domain?: string;
   [k: string]: unknown;
 }
 
@@ -17,6 +19,7 @@ const DispatchSchema = z.object({
   endpoint: z.string().min(1),
   mode: z.enum(["live", "reprocess"]).default("live"),
   raw: z.unknown().optional(),
+  domain: z.string().optional(),
 });
 
 type Handler = (opts: any) => Promise<Envelope<any>>;
@@ -35,7 +38,7 @@ export async function dispatch(event: DispatchEvent): Promise<Envelope<any>> {
   if (!parsed.success) {
     return { ok: false, error: `invalid request: ${parsed.error.message}`, code: "input" };
   }
-  const { endpoint, mode, raw } = parsed.data;
+  const { endpoint, mode, raw, domain } = parsed.data;
   const handler = handlers.get(endpoint);
   if (!handler) {
     return { ok: false, error: `unknown endpoint: ${endpoint}`, code: "input" };
@@ -45,10 +48,20 @@ export async function dispatch(event: DispatchEvent): Promise<Envelope<any>> {
     return { ok: false, error: "reprocess mode requires `raw`", code: "input" };
   }
 
+  // Validate domain if provided
+  let validatedDomain: string | undefined;
+  if (domain) {
+    try {
+      validatedDomain = validateDomain(domain);
+    } catch (e) {
+      return { ok: false, error: (e as Error).message, code: "input" };
+    }
+  }
+
   const t0 = Date.now();
   try {
-    const { mode: _mode, raw: _raw, endpoint: _endpoint, ...rest } = event;
-  return await handler({ mode, raw, ...rest });
+    const { mode: _mode, raw: _raw, endpoint: _endpoint, domain: _domain, ...rest } = event;
+  return await handler({ mode, raw, ...(validatedDomain !== undefined ? { domain: validatedDomain } : {}), ...rest });
   } catch (e) {
     return { ok: false, error: (e as Error).message, code: "handler-threw", meta: { fetchedAt: null, endpoint, durationMs: Date.now() - t0, parserVersion: "none", warnings: [(e as Error).message], mode } };
   }

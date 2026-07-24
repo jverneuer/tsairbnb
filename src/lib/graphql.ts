@@ -4,6 +4,8 @@ import { graphqlHeaders } from "../http/headers.js";
 import { emit } from "../telemetry.js";
 import { resolveHash, extensions, type OperationName } from "../registry/hashes.js";
 import { getConfig } from "../config/load.js";
+import { baseUrl } from "./domain.js";
+import { extractDomain } from "./domain.js";
 
 /**
  * Shared GraphQL call helper. Builds the persisted-query URL + extensions, runs the
@@ -15,9 +17,9 @@ export async function graphqlCall<T extends z.ZodTypeAny>(
   operation: OperationName,
   variables: Record<string, unknown>,
   apiKey: string,
-  opts: { method?: "GET" | "POST"; locale?: string; currency?: string; rawSchema?: T } = {},
-): Promise<{ data: z.infer<T>; raw: unknown } | { error: string; code: string }> {
-  const { method = "GET", locale = getConfig().locale, currency = getConfig().currency, rawSchema } = opts;
+  opts: { method?: "GET" | "POST"; locale?: string; currency?: string; domain?: string; rawSchema?: T } = {},
+): Promise<{ data: z.infer<T>; raw: unknown; respondedDomain?: string } | { error: string; code: string }> {
+  const { method = "GET", locale = getConfig().locale, currency = getConfig().currency, domain, rawSchema } = opts;
   const hash = await resolveHash(operation);
   const ext = extensions(operation, hash);
   const qs = new URLSearchParams({
@@ -28,7 +30,7 @@ export async function graphqlCall<T extends z.ZodTypeAny>(
     extensions: JSON.stringify(ext),
   });
 
-  const url = `https://www.airbnb.com/api/v3/${operation}/${hash}?${qs}`;
+  const url = `${baseUrl(domain)}/api/v3/${operation}/${hash}?${qs}`;
   const headers = graphqlHeaders(apiKey);
 
   const t0 = Date.now();
@@ -42,6 +44,7 @@ export async function graphqlCall<T extends z.ZodTypeAny>(
         })
       : await getClient().request({ url, headers });
 
+  const respondedDomain = res.effectiveUrl ? extractDomain(res.effectiveUrl) : undefined;
   emit({ t: "http", endpoint: operation, status: res.status, durationMs: Date.now() - t0 });
   if (res.status === 403) {
     emit({ t: "block", endpoint: operation, reason: "http-403" });
@@ -63,12 +66,12 @@ export async function graphqlCall<T extends z.ZodTypeAny>(
     if (!parsed.success) {
       return { error: `raw response failed validation: ${parsed.error.message}`, code: "parse" };
     }
-    return { data: parsed.data, raw };
+    return { data: parsed.data, raw, ...(respondedDomain !== undefined ? { respondedDomain } : {}) };
   }
 
   const data = (raw as { data?: unknown }).data;
   if (data === undefined) {
     return { error: "no data field in response", code: "parse" };
   }
-  return { data: data as z.infer<T>, raw };
+  return { data: data as z.infer<T>, raw, ...(respondedDomain !== undefined ? { respondedDomain } : {}) };
 }

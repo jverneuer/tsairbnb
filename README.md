@@ -65,6 +65,7 @@ After deploy, the stack outputs the CloudFront URL and the (unthrottled) direct 
 
 ```
 GET /?endpoint=<name>&mode=live|<params...>
+GET /?endpoint=<name>&mode=live&domain=airbnb.ie|<params...>
 GET /?endpoint=<name>&mode=reprocess&raw=<urlencoded JSON>
 ```
 
@@ -81,7 +82,8 @@ Every response is a JSON **envelope**:
     "durationMs": 842,
     "parserVersion": "v2026-graphql",
     "warnings": [],
-    "mode": "live"
+    "mode": "live",
+    "respondedDomain": "airbnb.ie"
   }
 }
 ```
@@ -137,6 +139,39 @@ Capture a raw response once (it's in every result's `raw` field), then reprocess
 
 ```
 GET /?endpoint=get-details&mode=reprocess&raw=%7B%22data%22%3A...%7D
+```
+
+### Regional domain routing
+
+Airbnb operates 60+ country-specific domains (`airbnb.fr`, `airbnb.de`, `airbnb.ie`, …). Lambda IPs are geolocated by Cloudflare — an Irish Lambda IP gets redirected to `airbnb.ie`, which returns HTML instead of JSON for GraphQL endpoints.
+
+Use `?domain=<domain>` to target a specific domain explicitly:
+
+```
+GET /?endpoint=get-details&mode=live&roomId=1614908485455733264&domain=airbnb.fr
+GET /?endpoint=get-api-key&mode=live&domain=airbnb.de
+GET /?endpoint=search-all&mode=live&apiKey=<key>&domain=airbnb.ie
+```
+
+If no `?domain` is specified, the system follows redirects (curl `-L`) and reports the effective domain in `meta.respondedDomain`. Each domain has a default locale:
+
+| Domain | Default locale |
+|---|---|
+| `airbnb.com` | `en` |
+| `airbnb.fr` | `fr` |
+| `airbnb.de` | `de` |
+| `airbnb.ie` | `en` |
+| `airbnb.es` | `es` |
+| `airbnb.it` | `it` |
+| `airbnb.co.uk` | `en` |
+| `airbnb.com.au` | `en` |
+| … | (60+ domains supported) |
+
+Currency always defaults to **EUR**. Override per-request with `?currency=USD` if needed.
+
+Invalid domains return a validation error:
+```json
+{ "ok": false, "error": "Unknown domain: \"airbnb.xy\". Must be one of: airbnb.com, airbnb.fr, ...", "code": "input" }
 ```
 
 ## Configuration
@@ -197,7 +232,7 @@ tsairbnb/
 │   ├── http/              # HttpClient interface, curl-impersonate, headers, retry
 │   ├── registry/          # persisted-query hashes (single source of truth) + dynamic resolver
 │   ├── codecs/            # base64 id encode/decode
-│   ├── lib/               # get (dotted-path), price parsing
+│   ├── lib/               # get (dotted-path), price parsing, domain routing
 │   ├── types/             # envelope, domain types
 │   ├── endpoints/         # 17 endpoint handlers (live + reprocess)
 │   ├── parsers/           # pure parse functions + strategy registry
@@ -218,6 +253,7 @@ tsairbnb/
 | Amenities empty (#59/#60) | Correct path `data.node.pdpPresentation.amenities.seeAllAmenitiesGroups` |
 | `get_price` without prior scrape fails (#55) | Two-step flow documented; `get-details` returns the inputs `get-price` needs |
 | TLS impersonation drifts as Chrome updates | curl-impersonate can target a specific Chrome version; swap `HttpClient` impl behind the interface |
+| Cloudflare geo-redirects Lambda to wrong domain | `?domain=` param targets a specific domain; `meta.respondedDomain` reports the effective domain after redirects |
 
 ## License
 

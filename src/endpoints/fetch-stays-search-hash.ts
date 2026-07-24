@@ -9,7 +9,7 @@ import type { Envelope } from "../types/envelope.js";
  */
 
 export type FetchHashMode =
-  | { mode: "live" }
+  | { mode: "live"; domain?: string }
   | { mode: "reprocess"; raw: unknown };
 
 export async function fetchStaysSearchHashEndpoint(opts: FetchHashMode): Promise<Envelope<{ hash: string; source: "dynamic" | "static" }>> {
@@ -21,7 +21,7 @@ export async function fetchStaysSearchHashEndpoint(opts: FetchHashMode): Promise
 
   const t0 = Date.now();
   try {
-    const hash = await fetchStaysSearchHash();
+    const hash = await fetchStaysSearchHash(opts.domain);
     return { ok: true, data: { hash, source: "dynamic" }, raw: null, meta: { fetchedAt: new Date().toISOString(), endpoint: "fetch-stays-search-hash", durationMs: Date.now() - t0, parserVersion: "webpack-scrape", warnings: [], mode: "live" } };
   } catch (e) {
     // Fall back to the static default from the registry — matches pyairbnb's behavior.

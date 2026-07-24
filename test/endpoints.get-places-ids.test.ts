@@ -49,4 +49,16 @@ describe("getPlacesIds", () => {
     const result = await getPlacesIds({ mode: "reprocess", raw: { foo: "bar" } });
     expect(result).toMatchObject({ ok: true, data: [{ foo: "bar" }] });
   });
+  it("live includes respondedDomain in meta when effectiveUrl present", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: JSON.stringify({ autocomplete_terms: [{ id: 1 }] }), effectiveUrl: "https://www.airbnb.com/api/..." }) } as any);
+    const result = await getPlacesIds({ mode: "live", country: "mk", locationName: "Skopje", apiKey: "k", configToken: "ct" });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.meta.respondedDomain).toBe("airbnb.com");
+  });
+  it("live omits respondedDomain from meta when effectiveUrl absent", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: JSON.stringify({ autocomplete_terms: [{ id: 1 }] }) }) } as any);
+    const result = await getPlacesIds({ mode: "live", country: "mk", locationName: "Skopje", apiKey: "k", configToken: "ct" });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.meta).not.toHaveProperty("respondedDomain");
+  });
 });

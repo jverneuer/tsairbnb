@@ -1,5 +1,6 @@
 import { getClient } from "../http/curl-impersonate.js";
 import { browserHeaders } from "../http/headers.js";
+import { baseUrl } from "../lib/domain.js";
 
 /**
  * Dynamic StaysSearch hash resolver — ports pyairbnb's fetch_stays_search_hash.
@@ -9,8 +10,6 @@ import { browserHeaders } from "../http/headers.js";
  * This is the most fragile piece. The candidate-slice + multi-regex approach is deliberately
  * loose because the bundle path regex and chunk naming drift frequently.
  */
-
-const HOMEPAGE = "https://www.airbnb.com/";
 
 const BUNDLE_RE =
   /https:\/\/a0\.muscache\.com\/airbnb\/static\/packages\/web\/[^/]+\/frontend\/airmetro\/browser\/asyncRequire\.[^"']+\.js/g;
@@ -27,11 +26,12 @@ const HASH_PATTERNS = [
   /StaysSearch\/([0-9a-f]{64})/,
 ];
 
-export async function fetchStaysSearchHash(): Promise<string> {
+export async function fetchStaysSearchHash(domain?: string): Promise<string> {
   const client = getClient();
+  const homepage = baseUrl(domain);
 
   // 1. Homepage → bundle manifest URL
-  const home = await client.request({ url: HOMEPAGE, headers: browserHeaders() });
+  const home = await client.request({ url: homepage, headers: browserHeaders() });
   const bundleMatch = home.body.match(BUNDLE_RE);
   if (!bundleMatch || bundleMatch.length === 0) {
     throw new Error("fetch-stays-search-hash: no bundle manifest URL on homepage");

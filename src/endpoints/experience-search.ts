@@ -12,7 +12,7 @@ import { getConfig } from "../config/load.js";
  */
 
 export type ExperienceSearchMode =
-  | { mode: "live"; userInputText: string; apiKey: string; checkIn?: string; checkOut?: string; currency?: string; locale?: string }
+  | { mode: "live"; userInputText: string; apiKey: string; checkIn?: string; checkOut?: string; currency?: string; locale?: string; domain?: string }
   | { mode: "reprocess"; raw: unknown };
 
 export async function experienceSearch(opts: ExperienceSearchMode): Promise<Envelope<ExperienceHit[]>> {
@@ -28,7 +28,7 @@ export async function experienceSearch(opts: ExperienceSearchMode): Promise<Enve
   const locale = opts.locale ?? getConfig().locale;
 
   // 1. markets -> first market
-  const markets = await getMarkets({ mode: "live", apiKey: opts.apiKey });
+  const markets = await getMarkets({ mode: "live", apiKey: opts.apiKey, ...(opts.domain !== undefined ? { domain: opts.domain } : {}) });
   if (!markets.ok) return markets as any;
   const firstMarket = (markets.data as any[])[0];
   if (!firstMarket) return { ok: false, error: "no markets returned", code: "parse" };
@@ -37,7 +37,7 @@ export async function experienceSearch(opts: ExperienceSearchMode): Promise<Enve
   if (!configToken || !countryCode) return { ok: false, error: "market missing satori_parameters or country_code", code: "parse" };
 
   // 2. places -> first place
-  const places = await getPlacesIds({ mode: "live", country: countryCode, locationName: opts.userInputText, apiKey: opts.apiKey, configToken });
+  const places = await getPlacesIds({ mode: "live", country: countryCode, locationName: opts.userInputText, apiKey: opts.apiKey, configToken, ...(opts.domain !== undefined ? { domain: opts.domain } : {}) });
   if (!places.ok) return places as any;
   const firstPlace = (places.data as any[])[0];
   if (!firstPlace) return { ok: false, error: "no places returned", code: "parse" };

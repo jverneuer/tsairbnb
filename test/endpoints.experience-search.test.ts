@@ -15,6 +15,16 @@ describe("experienceSearch", () => {
     const result = await experienceSearch({ mode: "reprocess", raw: { invalid: true } });
     expect(result).toMatchObject({ ok: true, data: [] });
   });
+  it("reprocess returns error when parseExperience fails", async () => {
+    vi.resetModules();
+    vi.doMock("../src/parsers/experience.js", () => ({
+      parseExperience: async () => ({ error: "no-strategy-matched" }),
+    }));
+    const { experienceSearch: reloaded } = await import("../src/endpoints/experience-search.js");
+    const result = await reloaded({ mode: "reprocess", raw: {} });
+    expect(result).toMatchObject({ ok: false, error: "no-strategy-matched", code: "no-strategy-matched" });
+    vi.doUnmock("../src/parsers/experience.js");
+  });
   it("live orchestrates markets -> places -> search", async () => {
     let callIdx = 0;
     setClient({ request: vi.fn().mockImplementation((req: any) => {
@@ -59,7 +69,17 @@ describe("experienceSearch", () => {
   it("live returns error when markets call fails", async () => {
     setClient({ request: vi.fn().mockResolvedValue({ status: 500, body: "" }) } as any);
     const result = await experienceSearch({ mode: "live", userInputText: "Skopje", apiKey: "k" });
-    expect(result).toMatchObject({ ok: false });
+    expect(result).toMatchObject({ ok: false, error: "http 500", code: "http-500" });
+  });
+  it("live returns error when markets call blocked 403", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 403, body: "" }) } as any);
+    const result = await experienceSearch({ mode: "live", userInputText: "Skopje", apiKey: "k" });
+    expect(result).toMatchObject({ ok: false, error: "blocked: 403", code: "block" });
+  });
+  it("live returns error when markets body not JSON", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: "not json" }) } as any);
+    const result = await experienceSearch({ mode: "live", userInputText: "Skopje", apiKey: "k" });
+    expect(result).toMatchObject({ ok: false, error: "not JSON", code: "parse" });
   });
   it("live returns error when places call fails", async () => {
     let callIdx = 0;
@@ -69,7 +89,27 @@ describe("experienceSearch", () => {
       return Promise.resolve({ status: 500, body: "" });
     }) } as any);
     const result = await experienceSearch({ mode: "live", userInputText: "Skopje", apiKey: "k" });
-    expect(result).toMatchObject({ ok: false });
+    expect(result).toMatchObject({ ok: false, error: "http 500", code: "http-500" });
+  });
+  it("live returns error when places call blocked 403", async () => {
+    let callIdx = 0;
+    setClient({ request: vi.fn().mockImplementation(() => {
+      callIdx++;
+      if (callIdx === 1) return Promise.resolve({ status: 200, body: JSON.stringify({ user_markets: [{ satori_parameters: "sp", country_code: "mk" }] }) });
+      return Promise.resolve({ status: 403, body: "" });
+    }) } as any);
+    const result = await experienceSearch({ mode: "live", userInputText: "Skopje", apiKey: "k" });
+    expect(result).toMatchObject({ ok: false, error: "blocked: 403", code: "block" });
+  });
+  it("live returns error when places body not JSON", async () => {
+    let callIdx = 0;
+    setClient({ request: vi.fn().mockImplementation(() => {
+      callIdx++;
+      if (callIdx === 1) return Promise.resolve({ status: 200, body: JSON.stringify({ user_markets: [{ satori_parameters: "sp", country_code: "mk" }] }) });
+      return Promise.resolve({ status: 200, body: "not json" });
+    }) } as any);
+    const result = await experienceSearch({ mode: "live", userInputText: "Skopje", apiKey: "k" });
+    expect(result).toMatchObject({ ok: false, error: "not JSON", code: "parse" });
   });
   it("live returns error when experience search call fails", async () => {
     let callIdx = 0;

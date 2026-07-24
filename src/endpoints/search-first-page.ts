@@ -11,7 +11,7 @@ import { createEndpoint } from "../lib/endpoint.js";
  */
 
 export type SearchFirstPageMode =
-  | { mode: "live"; apiKey: string; variables: SearchAllVariables; currency?: string; language?: string }
+  | { mode: "live"; apiKey: string; variables: SearchAllVariables; currency?: string; language?: string; domain?: string }
   | { mode: "reprocess"; raw: unknown };
 
 export const searchFirstPage = createEndpoint<
@@ -27,5 +27,6 @@ export const searchFirstPage = createEndpoint<
   getApiKey: (opts) => opts.apiKey,
   getLocale: (opts) => opts.language,
   getCurrency: (opts) => opts.currency,
+  getDomain: (opts) => opts.domain,
   buildVariables: (opts) => buildVariablesPublic(opts.variables, null),
 });
