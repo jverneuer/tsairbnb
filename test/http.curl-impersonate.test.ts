@@ -213,6 +213,12 @@ describe("demux", () => {
     expect(result.cookies).toContain("HttpOnly_");
   });
 
+  it("returns empty effectiveUrl when no __URL_EFFECTIVE__ trailer", () => {
+    const stdout = "ignored\r\n\r\nbody\r\n__HTTP_STATUS__:200";
+    const result = demux(stdout);
+    expect(result.effectiveUrl).toBe("");
+  });
+
   it("strips __HTTP_STATUS__ from body", () => {
     const stdout = "HTTP/1.1 200\r\n\r\nbody\r\n__HTTP_STATUS__:200";
     const result = demux(stdout);

@@ -7,6 +7,7 @@ import { getCalendar } from "./get-calendar.js";
 import { getHostDetails } from "./get-host-details.js";
 import { getPrice } from "./get-price.js";
 import { path } from "../lib/get.js";
+import { baseUrl } from "../lib/domain.js";
 
 /**
  * get-details — the aggregator. Ports pyairbnb's start.py::get_details:
@@ -25,6 +26,7 @@ export interface GetDetailsOpts {
   checkOut?: string;
   adults?: number;
   language?: string;
+  domain?: string;
   raw?: unknown;
 }
 
@@ -40,7 +42,7 @@ export async function getDetails(opts: GetDetailsOpts): Promise<Envelope<Listing
     };
   }
 
-  const roomUrl = opts.roomUrl ?? (opts.roomId ? `https://www.airbnb.com/rooms/${opts.roomId}` : undefined);
+  const roomUrl = opts.roomUrl ?? (opts.roomId ? `${baseUrl(opts.domain)}/rooms/${opts.roomId}` : undefined);
   if (!roomUrl) return { ok: false, error: "need roomUrl or roomId", code: "input" };
 
   const warnings: string[] = [];
@@ -94,7 +96,7 @@ export async function getDetails(opts: GetDetailsOpts): Promise<Envelope<Listing
     ok: true,
     data,
     raw: meta.raw,
-    meta: { fetchedAt: new Date().toISOString(), endpoint: "get-details", durationMs: Date.now() - t0, parserVersion: parsed.parserVersion, warnings, mode: "live" },
+    meta: { fetchedAt: new Date().toISOString(), endpoint: "get-details", durationMs: Date.now() - t0, parserVersion: parsed.parserVersion, warnings, mode: "live", ...(meta.meta.respondedDomain !== undefined ? { respondedDomain: meta.meta.respondedDomain } : {}) },
   };
 }
 

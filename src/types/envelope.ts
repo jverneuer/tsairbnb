@@ -13,6 +13,8 @@ export interface ParseMeta {
   warnings: string[];
   /** Live or reprocess. */
   mode: "live" | "reprocess";
+  /** The domain that actually responded (after redirects), e.g. "airbnb.ie". */
+  respondedDomain?: string;
 }
 
 export type EnvelopeOk<T> = {

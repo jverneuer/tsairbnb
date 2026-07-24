@@ -150,6 +150,58 @@ describe("searchStrategies", () => {
     );
     expect(result.hits[0]!.price!.total).toBeNull();
   });
+  it("stays-search falls back to price when originalPrice missing", () => {
+    const result = searchStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            staysSearch: {
+              results: {
+                searchResults: [
+                  {
+                    __typename: "StaySearchResult",
+                    demandStayListing: { id: "RGVtYW5kU3RheUxpc3Rpbmc6MTIz" },
+                    structuredDisplayPrice: {
+                      primaryLine: { price: "$100" },
+                    },
+                  },
+                ],
+                paginationInfo: {},
+              },
+            },
+          },
+        },
+      },
+      [],
+    );
+    expect(result.hits[0]!.price!.unit).toEqual({ amount: 100, currency: "$" });
+  });
+  it("stays-search falls back to empty string when both prices missing", () => {
+    const result = searchStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            staysSearch: {
+              results: {
+                searchResults: [
+                  {
+                    __typename: "StaySearchResult",
+                    demandStayListing: { id: "RGVtYW5kU3RheUxpc3Rpbmc6MTIz" },
+                    structuredDisplayPrice: {
+                      primaryLine: {},
+                    },
+                  },
+                ],
+                paginationInfo: {},
+              },
+            },
+          },
+        },
+      },
+      [],
+    );
+    expect(result.hits[0]!.price!.unit).toBeNull();
+  });
   it("stays-search handles hit with no primaryLine", () => {
     const result = searchStrategies[0]!.parse(
       {

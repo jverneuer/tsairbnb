@@ -75,6 +75,34 @@ describe("graphqlCall", () => {
     expect("error" in result).toBe(true);
   });
 
+  it("omits respondedDomain when effectiveUrl is empty", async () => {
+    setClient({
+      request: vi.fn().mockResolvedValue({
+        status: 200,
+        body: JSON.stringify({ data: { foo: "bar" } }),
+        effectiveUrl: "",
+      }),
+    } as any);
+    const result = await graphqlCall(OP, {}, "k");
+    expect("error" in result).toBe(false);
+    if (!("error" in result)) expect(result.respondedDomain).toBeUndefined();
+  });
+
+  it("returns data with rawSchema validation (no data wrapper)", async () => {
+    const { z } = await import("zod");
+    setClient({
+      request: vi.fn().mockResolvedValue({
+        status: 200,
+        body: JSON.stringify({ foo: "bar" }),
+        effectiveUrl: "",
+      }),
+    } as any);
+    const result = await graphqlCall(OP, {}, "k", {
+      rawSchema: z.object({ foo: z.string() }),
+    });
+    expect("error" in result).toBe(false);
+  });
+
   afterEach(() => {
     setClient(new CurlImpersonateClient());
   });

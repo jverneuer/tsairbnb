@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { register, listEndpoints, dispatch } from "../src/dispatcher.js";
+import * as domain from "../src/lib/domain.js";
 
 describe("dispatcher", () => {
   it("register + listEndpoints", () => {

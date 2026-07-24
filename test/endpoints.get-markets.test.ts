@@ -43,6 +43,18 @@ describe("getMarkets", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toEqual(["x"]);
   });
+  it("live includes respondedDomain in meta when effectiveUrl present", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: JSON.stringify({ user_markets: [] }), effectiveUrl: "https://www.airbnb.com/api/v2/user_markets" }) } as any);
+    const result = await getMarkets({ mode: "live", apiKey: "k" });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.meta).toHaveProperty("respondedDomain", "airbnb.com");
+  });
+  it("live omits respondedDomain from meta when effectiveUrl absent", async () => {
+    setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: JSON.stringify({ user_markets: [] }) }) } as any);
+    const result = await getMarkets({ mode: "live", apiKey: "k" });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.meta).not.toHaveProperty("respondedDomain");
+  });
   it("live falls back to raw when user_markets missing", async () => {
     setClient({ request: vi.fn().mockResolvedValue({ status: 200, body: JSON.stringify({ data: {} }) }) } as any);
     const result = await getMarkets({ mode: "live", apiKey: "k" });

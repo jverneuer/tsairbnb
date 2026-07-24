@@ -31,7 +31,7 @@ export interface SearchAllVariables {
 }
 
 export type SearchAllMode =
-  | { mode: "live"; apiKey: string; variables: SearchAllVariables; currency?: string; language?: string }
+  | { mode: "live"; apiKey: string; variables: SearchAllVariables; currency?: string; language?: string; domain?: string }
   | { mode: "reprocess"; raw: unknown };
 
 export const searchAll = createPaginatedEndpoint<
@@ -48,6 +48,7 @@ export const searchAll = createPaginatedEndpoint<
   getApiKey: (opts) => opts.apiKey,
   getLocale: (opts) => opts.language,
   getCurrency: (opts) => opts.currency,
+  getDomain: (opts) => opts.domain,
   buildVariables: (opts, _page, cursor) => buildVariables(opts.variables, cursor),
   extractItems: (data) => data.hits,
   getNextCursor: (data) => data.nextCursor,

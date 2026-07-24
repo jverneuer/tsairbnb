@@ -21,6 +21,7 @@ export interface EndpointConfig<TPublic, TRaw extends z.ZodTypeAny, TLiveOpts ex
   getApiKey: (opts: TLiveOpts) => string;
   getLocale?: (opts: TLiveOpts) => string | undefined;
   getCurrency?: (opts: TLiveOpts) => string | undefined;
+  getDomain?: (opts: TLiveOpts) => string | undefined;
 }
 
 export function createEndpoint<TPublic, TRaw extends z.ZodTypeAny, TLiveOpts extends { mode: "live" }>(
@@ -42,12 +43,14 @@ export function createEndpoint<TPublic, TRaw extends z.ZodTypeAny, TLiveOpts ext
     const variables = config.buildVariables(opts);
     const locale = config.getLocale?.(opts);
     const currency = config.getCurrency?.(opts);
+    const domain = config.getDomain?.(opts);
 
     const callOpts: Parameters<typeof graphqlCall>[3] = {
       method: config.method,
       rawSchema: config.rawSchema,
       ...(locale !== undefined ? { locale } : {}),
       ...(currency !== undefined ? { currency } : {}),
+      ...(domain !== undefined ? { domain } : {}),
     };
     const res = await graphqlCall(config.operation as OperationName, variables, apiKey, callOpts);
 
@@ -60,7 +63,7 @@ export function createEndpoint<TPublic, TRaw extends z.ZodTypeAny, TLiveOpts ext
       ok: true,
       data: parsed.data,
       raw: res.raw,
-      meta: { fetchedAt: new Date().toISOString(), endpoint: config.name, durationMs: 0, parserVersion: parsed.parserVersion, warnings: parsed.warnings, mode: "live" as const },
+      meta: { fetchedAt: new Date().toISOString(), endpoint: config.name, durationMs: 0, parserVersion: parsed.parserVersion, warnings: parsed.warnings, mode: "live" as const, ...(res.respondedDomain !== undefined ? { respondedDomain: res.respondedDomain } : {}) },
     };
   };
 }
@@ -80,6 +83,7 @@ export interface PaginatedEndpointConfig<TPublic, TItem, TRaw extends z.ZodTypeA
   shouldStop?: (data: TPublic, page: number) => boolean;
   getLocale?: (opts: TLiveOpts) => string | undefined;
   getCurrency?: (opts: TLiveOpts) => string | undefined;
+  getDomain?: (opts: TLiveOpts) => string | undefined;
 }
 
 export function createPaginatedEndpoint<TPublic, TItem, TRaw extends z.ZodTypeAny, TLiveOpts extends { mode: "live" }>(
@@ -100,11 +104,13 @@ export function createPaginatedEndpoint<TPublic, TItem, TRaw extends z.ZodTypeAn
     const apiKey = config.getApiKey(opts);
     const locale = config.getLocale?.(opts);
     const currency = config.getCurrency?.(opts);
+    const domain = config.getDomain?.(opts);
     const maxPages = getConfig().maxPages;
     const all: TItem[] = [];
     const warnings: string[] = [];
     let cursor: string | null = null;
     let parserVersion = config.name;
+    let respondedDomain: string | undefined;
 
     for (let page = 0; page < maxPages; page++) {
       const variables = config.buildVariables(opts, page, cursor);
@@ -113,6 +119,7 @@ export function createPaginatedEndpoint<TPublic, TItem, TRaw extends z.ZodTypeAn
         rawSchema: config.rawSchema,
         ...(locale !== undefined ? { locale } : {}),
         ...(currency !== undefined ? { currency } : {}),
+        ...(domain !== undefined ? { domain } : {}),
       };
       const res = await graphqlCall(config.operation as OperationName, variables, apiKey, callOpts);
       if ("error" in res) return { ok: false, error: res.error, code: res.code };
@@ -121,6 +128,7 @@ export function createPaginatedEndpoint<TPublic, TItem, TRaw extends z.ZodTypeAn
       if ("error" in parsed) return { ok: false, error: parsed.error, code: "parse" };
       warnings.push(...parsed.warnings);
       parserVersion = parsed.parserVersion;
+      respondedDomain = res.respondedDomain;
       all.push(...config.extractItems(parsed.data));
       if (config.shouldStop?.(parsed.data, page)) break;
       cursor = config.getNextCursor(parsed.data);
@@ -135,7 +143,7 @@ export function createPaginatedEndpoint<TPublic, TItem, TRaw extends z.ZodTypeAn
       ok: true,
       data: all,
       raw: null,
-      meta: { fetchedAt: new Date().toISOString(), endpoint: config.name, durationMs: 0, parserVersion, warnings, mode: "live" as const },
+      meta: { fetchedAt: new Date().toISOString(), endpoint: config.name, durationMs: 0, parserVersion, warnings, mode: "live" as const, ...(respondedDomain !== undefined ? { respondedDomain } : {}) },
     };
   };
 }

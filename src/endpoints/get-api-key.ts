@@ -2,6 +2,7 @@ import { getClient } from "../http/curl-impersonate.js";
 import { browserHeaders } from "../http/headers.js";
 import { emit } from "../telemetry.js";
 import type { Envelope } from "../types/envelope.js";
+import { baseUrl, extractDomain } from "../lib/domain.js";
 
 /**
  * get-api-key — scrape the Airbnb homepage for the public API key used as X-Airbnb-Api-Key
@@ -9,11 +10,10 @@ import type { Envelope } from "../types/envelope.js";
  * The key is stable for a while but can rotate; refresh periodically.
  */
 
-const HOMEPAGE = "https://www.airbnb.com/";
 const API_KEY_RE = /"api_config":\{"key":"([^"]+)"/;
 
 export type GetApiKeyMode =
-  | { mode: "live" }
+  | { mode: "live"; domain?: string }
   | { mode: "reprocess"; raw: string };
 
 export async function getApiKey(opts: GetApiKeyMode): Promise<Envelope<{ apiKey: string }>> {
@@ -24,7 +24,9 @@ export async function getApiKey(opts: GetApiKeyMode): Promise<Envelope<{ apiKey:
   }
 
   const t0 = Date.now();
-  const res = await getClient().request({ url: HOMEPAGE, headers: browserHeaders() });
+  const homepage = baseUrl(opts.domain);
+  const res = await getClient().request({ url: homepage, headers: browserHeaders() });
+  const respondedDomain = res.effectiveUrl ? extractDomain(res.effectiveUrl) : undefined;
   emit({ t: "http", endpoint: "get-api-key", status: res.status, durationMs: Date.now() - t0 });
   if (res.status !== 200) return { ok: false, error: `http ${res.status}`, code: `http-${res.status}` };
 
@@ -34,11 +36,11 @@ export async function getApiKey(opts: GetApiKeyMode): Promise<Envelope<{ apiKey:
     ok: true,
     data: { apiKey: m[1] },
     raw: res.body,
-    meta: metaBase("live", "regex", [], t0),
+    meta: metaBase("live", "regex", [], t0, respondedDomain),
   };
 }
 
-function metaBase(mode: "live" | "reprocess", parserVersion: string, warnings: string[], t0 = 0) {
+function metaBase(mode: "live" | "reprocess", parserVersion: string, warnings: string[], t0 = 0, respondedDomain?: string) {
   return {
     fetchedAt: mode === "live" ? new Date().toISOString() : null,
     endpoint: "get-api-key",
@@ -46,5 +48,6 @@ function metaBase(mode: "live" | "reprocess", parserVersion: string, warnings: s
     parserVersion,
     warnings,
     mode,
+    ...(respondedDomain !== undefined ? { respondedDomain } : {}),
   };
 }

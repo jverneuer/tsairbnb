@@ -11,7 +11,7 @@ import { searchAll, type SearchAllVariables } from "./search-all.js";
 const SEARCH_PARAMS = ["check_in", "check_out", "ne_lat", "ne_lng", "sw_lat", "sw_lng", "zoom", "price_min", "price_max", "adults", "children", "infants"];
 
 export type SearchFromUrlMode =
-  | { mode: "live"; url: string; apiKey: string; currency?: string; language?: string }
+  | { mode: "live"; url: string; apiKey: string; currency?: string; language?: string; domain?: string }
   | { mode: "reprocess"; raw: unknown };
 
 export async function searchAllFromUrl(opts: SearchFromUrlMode): Promise<Envelope<readonly SearchHit[]>> {
@@ -37,7 +37,7 @@ export async function searchAllFromUrl(opts: SearchFromUrlMode): Promise<Envelop
   const adults = num(sp.get("adults")); if (adults != null) variables.adults = adults;
   const children = num(sp.get("children")); if (children != null) variables.children = children;
   const infants = num(sp.get("infants")); if (infants != null) variables.infants = infants;
-  return searchAll({ mode: "live", apiKey: opts.apiKey, variables, ...(opts.currency !== undefined ? { currency: opts.currency } : {}), ...(opts.language !== undefined ? { language: opts.language } : {}) });
+  return searchAll({ mode: "live", apiKey: opts.apiKey, variables, ...(opts.currency !== undefined ? { currency: opts.currency } : {}), ...(opts.language !== undefined ? { language: opts.language } : {}), ...(opts.domain !== undefined ? { domain: opts.domain } : {}) });
 }
 
 function num(s: string | null) { return s == null ? undefined : Number(s); }

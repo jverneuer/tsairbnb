@@ -2,6 +2,7 @@ import { getClient } from "../http/curl-impersonate.js";
 import { browserHeaders } from "../http/headers.js";
 import { emit } from "../telemetry.js";
 import type { Envelope } from "../types/envelope.js";
+import { extractDomain } from "../lib/domain.js";
 
 /**
  * get-metadata-from-url — low-level listing-page scrape. Ports pyairbnb's parse.py:
@@ -41,16 +42,17 @@ export async function getMetadataFromUrl(opts: GetMetadataMode): Promise<Envelop
     url: opts.roomUrl,
     headers: browserHeaders(opts.language ?? "en"),
   });
+  const respondedDomain = res.effectiveUrl ? extractDomain(res.effectiveUrl) : undefined;
   emit({ t: "http", endpoint: "get-metadata-from-url", status: res.status, durationMs: Date.now() - t0 });
   if (res.status === 403) {
     emit({ t: "block", endpoint: "get-metadata-from-url", reason: "http-403" });
     return { ok: false, error: "blocked: 403", code: "block" };
   }
   if (res.status !== 200) return { ok: false, error: `http ${res.status}`, code: `http-${res.status}` };
-  return parseHtml(res.body, res.cookies ?? {}, "live", t0);
+  return parseHtml(res.body, res.cookies ?? {}, "live", t0, respondedDomain);
 }
 
-function parseHtml(html: string, cookies: Record<string, string>, mode: "live" | "reprocess", t0 = 0): Envelope<Metadata> {
+function parseHtml(html: string, cookies: Record<string, string>, mode: "live" | "reprocess", t0 = 0, respondedDomain?: string): Envelope<Metadata> {
   const warnings: string[] = [];
   const deferred = html.match(DEFERRED_STATE_RE)?.[1];
   if (!deferred) warnings.push("no #data-deferred-state-0 blob");
@@ -82,6 +84,7 @@ function parseHtml(html: string, cookies: Record<string, string>, mode: "live" |
       parserVersion: "deferred-state",
       warnings,
       mode,
+      ...(respondedDomain !== undefined ? { respondedDomain } : {}),
     },
   };
 }

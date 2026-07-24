@@ -3,6 +3,7 @@ import { withRetry } from "../http/retry.js";
 import { emit } from "../telemetry.js";
 import { getConfig } from "../config/load.js";
 import type { EnvelopeErr, ParseMeta } from "../types/envelope.js";
+import { extractDomain } from "./domain.js";
 
 /**
  * Shared live-fetch helper: GET a URL, parse JSON, track telemetry, build the meta block.
@@ -12,7 +13,7 @@ export async function fetchJson(
   url: string,
   headers: Record<string, string>,
   endpoint: string,
-): Promise<{ raw: unknown; meta: Pick<ParseMeta, "fetchedAt" | "durationMs" | "endpoint"> } | EnvelopeErr> {
+): Promise<{ raw: unknown; meta: Pick<ParseMeta, "fetchedAt" | "durationMs" | "endpoint" | "respondedDomain"> } | EnvelopeErr> {
   const t0 = Date.now();
   const res = await withRetry(
     async () => {
@@ -22,6 +23,7 @@ export async function fetchJson(
     { endpoint },
   );
 
+  const respondedDomain = res.value.effectiveUrl ? extractDomain(res.value.effectiveUrl) : undefined;
   emit({ t: "http", endpoint, status: res.status, durationMs: Date.now() - t0 });
   if (res.status === 403) {
     emit({ t: "block", endpoint, reason: "http-403" });
@@ -39,13 +41,13 @@ export async function fetchJson(
   }
   return {
     raw,
-    meta: { fetchedAt: new Date().toISOString(), durationMs: Date.now() - t0, endpoint },
+    meta: { fetchedAt: new Date().toISOString(), durationMs: Date.now() - t0, endpoint, ...(respondedDomain !== undefined ? { respondedDomain } : {}) },
   };
 }
 
 /** Build the full meta block from the baseline + parser output. */
 export function buildMeta(
-  base: Pick<ParseMeta, "fetchedAt" | "durationMs" | "endpoint">,
+  base: Pick<ParseMeta, "fetchedAt" | "durationMs" | "endpoint" | "respondedDomain">,
   extra: { parserVersion: string; warnings: string[]; mode: "live" | "reprocess"; apikey?: string },
 ): ParseMeta {
   return { ...base, ...extra };

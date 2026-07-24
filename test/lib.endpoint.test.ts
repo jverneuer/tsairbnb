@@ -79,6 +79,63 @@ describe("createEndpoint", () => {
     const result = await ep({ mode: "live" } as any);
     expect(result).toEqual({ ok: false, error: "http 500", code: "http-500" });
   });
+  it("live passes locale and currency to graphqlCall", async () => {
+    mockGraphqlCall.mockResolvedValueOnce({ data: { result: "ok" }, raw: { result: "ok" } });
+    const ep = createEndpoint({
+      operation: "Op",
+      method: "GET",
+      rawSchema: {} as any,
+      parse: async () => ({ data: "x", parserVersion: "v1", warnings: [] }),
+      name: "ep",
+      getApiKey: () => "k",
+      buildVariables: () => ({}),
+      getLocale: () => "fr",
+      getCurrency: () => "EUR",
+    });
+    await ep({ mode: "live" } as any);
+    expect(mockGraphqlCall).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ locale: "fr", currency: "EUR" }),
+    );
+  });
+  it("live omits locale and currency when not provided", async () => {
+    mockGraphqlCall.mockResolvedValueOnce({ data: { result: "ok" }, raw: { result: "ok" } });
+    const ep = createEndpoint({
+      operation: "Op",
+      method: "GET",
+      rawSchema: {} as any,
+      parse: async () => ({ data: "x", parserVersion: "v1", warnings: [] }),
+      name: "ep",
+      getApiKey: () => "k",
+      buildVariables: () => ({}),
+    });
+    await ep({ mode: "live" } as any);
+    const callOpts = mockGraphqlCall.mock.calls[0][3];
+    expect(callOpts).not.toHaveProperty("locale");
+    expect(callOpts).not.toHaveProperty("currency");
+  });
+  it("live passes domain to graphqlCall when getDomain defined", async () => {
+    mockGraphqlCall.mockResolvedValueOnce({ data: { result: "ok" }, raw: { result: "ok" } });
+    const ep = createEndpoint({
+      operation: "Op",
+      method: "GET",
+      rawSchema: {} as any,
+      parse: async () => ({ data: "live-parsed", parserVersion: "v2", warnings: [] }),
+      name: "ep",
+      getApiKey: () => "k",
+      buildVariables: () => ({}),
+      getDomain: () => "airbnb.ie",
+    });
+    await ep({ mode: "live" } as any);
+    expect(mockGraphqlCall).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ domain: "airbnb.ie" }),
+    );
+  });
 });
 
 describe("createPaginatedEndpoint", () => {
@@ -159,5 +216,68 @@ describe("createPaginatedEndpoint", () => {
     });
     const result = await ep({ mode: "live" } as any);
     expect(result).toEqual({ ok: false, error: "blocked", code: "block" });
+  });
+  it("live passes locale and currency to paginated graphqlCall", async () => {
+    mockGraphqlCall.mockResolvedValueOnce({ data: { items: [1] }, raw: { items: [1] } });
+    const ep = createPaginatedEndpoint({
+      operation: "Op",
+      method: "GET",
+      rawSchema: {} as any,
+      parse: async () => ({ data: { items: [1] }, parserVersion: "v1", warnings: [] }),
+      name: "ep",
+      getApiKey: () => "k",
+      buildVariables: () => ({}),
+      extractItems: (data: any) => data.items,
+      getNextCursor: () => null,
+      getLocale: () => "fr",
+      getCurrency: () => "EUR",
+    });
+    await ep({ mode: "live" } as any);
+    expect(mockGraphqlCall).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ locale: "fr", currency: "EUR" }),
+    );
+  });
+  it("live omits locale and currency when not provided (paginated)", async () => {
+    mockGraphqlCall.mockResolvedValueOnce({ data: { items: [1] }, raw: { items: [1] } });
+    const ep = createPaginatedEndpoint({
+      operation: "Op",
+      method: "GET",
+      rawSchema: {} as any,
+      parse: async () => ({ data: { items: [1] }, parserVersion: "v1", warnings: [] }),
+      name: "ep",
+      getApiKey: () => "k",
+      buildVariables: () => ({}),
+      extractItems: (data: any) => data.items,
+      getNextCursor: () => null,
+    });
+    await ep({ mode: "live" } as any);
+    const callOpts = mockGraphqlCall.mock.calls[0][3];
+    expect(callOpts).not.toHaveProperty("locale");
+    expect(callOpts).not.toHaveProperty("currency");
+  });
+  it("live passes domain to paginated graphqlCall when getDomain defined", async () => {
+    mockGraphqlCall.mockResolvedValueOnce({ data: { items: [1] }, raw: { items: [1] } });
+    const ep = createPaginatedEndpoint({
+      operation: "Op",
+      method: "GET",
+      rawSchema: {} as any,
+      parse: async () => ({ data: { items: [1] }, parserVersion: "v1", warnings: [] }),
+      name: "ep",
+      getApiKey: () => "k",
+      buildVariables: () => ({}),
+      extractItems: (data: any) => data.items,
+      getNextCursor: () => null,
+      getDomain: () => "airbnb.ie",
+    });
+    await ep({ mode: "live" } as any);
+    expect(mockGraphqlCall).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ domain: "airbnb.ie" }),
+    );
   });
 });

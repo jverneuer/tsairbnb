@@ -19,6 +19,8 @@ export interface HttpResponse {
   body: string;
   /** Set-Cookie values merged into a single Cookie header value, if any. */
   cookies?: Record<string, string>;
+  /** Effective URL after following redirects (requires -L). */
+  effectiveUrl?: string;
 }
 
 export interface HttpClient {
