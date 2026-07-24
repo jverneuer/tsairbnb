@@ -1,4 +1,6 @@
+.zcode
 node_modules/
+coverage/
 dist/
 .cdk.staging/
 cdk.out/
