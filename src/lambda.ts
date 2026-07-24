@@ -49,7 +49,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   const { raw: _rawQs, ...qsRest } = qs;
   console.log("[lambda] dispatching:", JSON.stringify({ endpoint, mode, ...qsRest }));
   const result = await dispatch({ endpoint, mode, raw, ...qsRest });
-  console.log("[lambda] result:", JSON.stringify({ ok: result.ok, error: result.error, code: result.code }));
+  console.log("[lambda] result:", JSON.stringify({ ok: result.ok, error: "error" in result ? result.error : undefined, code: "code" in result ? result.code : undefined }));
   const status = result.ok ? 200 : result.code === "input" ? 400 : result.code === "block" ? 403 : 502;
   return json(status, result);
 }
