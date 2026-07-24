@@ -187,6 +187,34 @@ describe("listingStrategies", () => {
     );
     expect(result.amenities).toEqual([]);
   });
+  it("v2026-graphql handles amenity group with missing values", () => {
+    const warnings: string[] = [];
+    const result = listingStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              sections: {
+                metadata: { loggingContext: { eventDataLogging: {} } },
+                sections: [],
+              },
+            },
+          },
+          node: {
+            pdpPresentation: {
+              amenities: {
+                seeAllAmenitiesGroups: [
+                  { title: "Basic" },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.amenities[0]!.values).toEqual([]);
+  });
   it("v2026-graphql handles missing amenities", () => {
     const warnings: string[] = [];
     const result = listingStrategies[0]!.parse(
@@ -486,6 +514,103 @@ describe("listingStrategies", () => {
       warnings,
     );
     expect(result.id).not.toBeNull();
+  });
+  it("v2026-graphql keeps first hostProfile host id/name when second section missing them", () => {
+    const warnings: string[] = [];
+    const result = listingStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              id: "RGVtYW5kU3RheUxpc3Rpbmc6MTYxNDkwODQ4NTQ1NTczMzI2NA==",
+              sections: {
+                metadata: { loggingContext: { eventDataLogging: {} } },
+                sections: [
+                  { __typename: "HostProfileSection", hostAvatar: { userID: "firstId", name: "firstName" }, hostProfileDescription: { htmlText: "First" } },
+                  { __typename: "HostProfileSection" },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.host).toEqual({ id: "firstId", name: "firstName" });
+    expect(result.about).toBe("First");
+  });
+  it("v2026-graphql keeps first title/description when second section missing them", () => {
+    const warnings: string[] = [];
+    const result = listingStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              id: "RGVtYW5kU3RheUxpc3Rpbmc6MTYxNDkwODQ4NTQ1NTczMzI2NA==",
+              sections: {
+                metadata: { loggingContext: { eventDataLogging: {} } },
+                sections: [
+                  { __typename: "PdpTitleSection", title: "First Title" },
+                  { __typename: "PdpTitleSection" },
+                  { __typename: "PdpDescriptionSection", description: { htmlText: "<p>First</p>" } },
+                  { __typename: "PdpDescriptionSection" },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.title).toBe("First Title");
+    expect(result.description).toBe("<p>First</p>");
+  });
+  it("v2026-graphql photo falls back to url when picture missing", () => {
+    const warnings: string[] = [];
+    const result = listingStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              id: "RGVtYW5kU3RheUxpc3Rpbmc6MTYxNDkwODQ4NTQ1NTczMzI2NA==",
+              sections: {
+                metadata: { loggingContext: { eventDataLogging: {} } },
+                sections: [
+                  { __typename: "PhotoTourModalSection", photos: [{ url: "http://img/by-url.jpg" }] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.photos[0]!.url).toBe("http://img/by-url.jpg");
+  });
+  it("v2026-graphql houseRules handles non-string values (uses value.title)", () => {
+    const warnings: string[] = [];
+    const result = listingStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              id: "RGVtYW5kU3RheUxpc3Rpbmc6MTYxNDkwODQ4NTQ1NTczMzI2NA==",
+              sections: {
+                metadata: { loggingContext: { eventDataLogging: {} } },
+                sections: [
+                  {
+                    __typename: "PoliciesSection",
+                    houseRules: { general: [{ title: "Rule", values: [{ title: "vTitle" }] }] },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.houseRules[0]!.values).toEqual(["vTitle"]);
   });
   it("bare parser with string id that is numeric", () => {
     const result = listingStrategies[1]!.parse({ id: "42" }, []);

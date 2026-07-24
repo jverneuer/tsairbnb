@@ -43,7 +43,6 @@ export function parsePriceString(s: string | undefined | null): Money | null {
 export function parseRatingString(s: string | undefined | null): Rating | null {
   if (!s || typeof s !== "string") return null;
   const parts = s.split(/\s+/);
-  if (parts.length === 0) return null;
   const rating = Number(parts[0]!.replace(",", "."));
   if (Number.isNaN(rating)) return null;
   const countMatch = parts.slice(1).join(" ").match(/\d+/);

@@ -54,7 +54,7 @@ export const listingStrategies: ParserStrategy<Listing>[] = [
 
 function parseV2026(raw: unknown, warnings: string[]): Listing {
   const sections = path(raw, SECTIONS_PATH) as Record<string, unknown>;
-  const ev = path(sections, "metadata.loggingContext.eventDataLogging") as Record<string, unknown>;
+  const ev = path(sections, "metadata.loggingContext.eventDataLogging") as Record<string, unknown> | undefined;
 
   let host: Listing["host"] = EMPTY.host;
   let about: Listing["about"] = null;

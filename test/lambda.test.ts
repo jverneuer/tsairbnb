@@ -80,6 +80,14 @@ describe("lambda handler", () => {
     const result = await handler({ rawPath: "/", rawQueryString: "", queryStringParameters: {}, body: null } as any);
     expect(result.statusCode).toBe(200);
   });
+  it("skips undefined queryStringParameters values", async () => {
+    const result = await handler({ rawPath: "/", rawQueryString: "", queryStringParameters: { endpoint: "x", mode: undefined as any }, body: null } as any);
+    expect(result.statusCode).toBe(200);
+  });
+  it("handles reprocess with raw from body when qs.raw missing", async () => {
+    const result = await handler({ rawPath: "/", rawQueryString: "endpoint=x&mode=reprocess", queryStringParameters: { endpoint: "x", mode: "reprocess" }, body: JSON.stringify({ foo: "bar" }) } as any);
+    expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({ mode: "reprocess", raw: { foo: "bar" } }));
+  });
   it("ensureInit catches SSM failure and continues", async () => {
     vi.resetModules();
     mockInitFromSsm.mockRejectedValueOnce(new Error("SSM down"));

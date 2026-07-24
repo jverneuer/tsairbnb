@@ -12,16 +12,18 @@
 FROM --platform=${TARGETPLATFORM} public.ecr.aws/lambda/nodejs:24 AS base
 
 # --- install curl-impersonate (chrome124 profile) ---
-ARG CURL_IMPERSONATE_VERSION=0.8.0
+ARG CURL_IMPERSONATE_VERSION=0.6.1
 ARG ARCH
-RUN if [ -z "$ARCH" ]; then case "${TARGETPLATFORM}" in \
+RUN dnf install -y tar gzip && \
+    if [ -z "$ARCH" ]; then case "${TARGETPLATFORM}" in \
       linux/amd64) ARCH=x86_64 ;; linux/arm64) ARCH=aarch64 ;; \
       *) echo "unsupported platform ${TARGETPLATFORM}" && exit 1 ;; esac; fi && \
     curl -fsSL "https://github.com/lwthiker/curl-impersonate/releases/download/v${CURL_IMPERSONATE_VERSION}/curl-impersonate-v${CURL_IMPERSONATE_VERSION}.${ARCH}-linux-gnu.tar.gz" \
       -o /tmp/ci.tgz && \
-    tar -xzf /tmp/ci.tgz -C /usr/local/bin --strip-components=2 && \
+    tar -xzf /tmp/ci.tgz -C /usr/local/bin && \
     rm /tmp/ci.tgz && \
-    curl-impersonate-chrome --version
+    curl-impersonate-chrome --version && \
+    dnf clean all
 
 # --- copy compiled Lambda handler ---
 WORKDIR ${LAMBDA_TASK_ROOT}

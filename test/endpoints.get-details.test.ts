@@ -177,6 +177,32 @@ describe("getDetails", () => {
     const result = await getDetails({ mode: "live", roomId: "1", checkIn: "2026-07-01", checkOut: "2026-07-05" });
     expect(result).toMatchObject({ ok: true });
   });
+  it("live merges host details when host fulfilled with value", async () => {
+    const html = '<div id="data-deferred-state-0">{"data":{"presentation":{"stayProductDetailPage":{"id":"RGVtYW5kU3RheUxpc3Rpbmc6MTIz","sections":{"sections":[{"__typename":"HostProfileSection","hostAvatar":{"userID":"h1"}}]}}}}}</div>"key":"k1""p3ImpressionId":"imp1"';
+    let callIdx = 0;
+    setClient({ request: vi.fn().mockImplementation((req: any) => {
+      callIdx++;
+      if (callIdx === 1) return Promise.resolve({ status: 200, body: html });
+      if (req.url.includes("GetUserProfile")) return Promise.resolve({ status: 200, body: JSON.stringify({ data: { presentation: { user: { id: "VXNlcjo0Mg==", name: "HostX" } } } }) });
+      return Promise.resolve({ status: 200, body: JSON.stringify({ data: {} }) });
+    }) } as any);
+    const result = await getDetails({ mode: "live", roomId: "1", checkIn: "2026-07-01", checkOut: "2026-07-05" });
+    expect(result).toMatchObject({ ok: true });
+    if (result.ok) expect(result.data.host).toMatchObject({ name: "HostX" });
+  });
+  it("live attaches price when price.ok", async () => {
+    const html = '<div id="data-deferred-state-0">{"data":{"presentation":{"stayProductDetailPage":{"id":"RGVtYW5kU3RheUxpc3Rpbmc6MTIz","sections":{"sections":[{"__typename":"HostProfileSection","hostAvatar":{"userID":"h1"}}]}}}}}</div>"key":"k1""p3ImpressionId":"imp1"';
+    let callIdx = 0;
+    setClient({ request: vi.fn().mockImplementation((req: any) => {
+      callIdx++;
+      if (callIdx === 1) return Promise.resolve({ status: 200, body: html });
+      if (req.url.includes("StaysPdpSections")) return Promise.resolve({ status: 200, body: JSON.stringify({ data: { presentation: { stayProductDetailPage: { sections: { sections: [{ sectionId: "BOOK_IT_SIDEBAR", structuredDisplayPrice: { primaryLine: { price: "$100" } } }] } } } } }) });
+      return Promise.resolve({ status: 200, body: JSON.stringify({ data: {} }) });
+    }) } as any);
+    const result = await getDetails({ mode: "live", roomId: "1", checkIn: "2026-07-01", checkOut: "2026-07-05" });
+    expect(result).toMatchObject({ ok: true });
+    if (result.ok) expect(result.data.price).toBeDefined();
+  });
   it("live warns when price not ok", async () => {
     const html = '<div id="data-deferred-state-0">{"niobeClientData":[null,{"id":1,"host":{"id":"h1"}}]}</div>"key":"k1""p3ImpressionId":"imp1"';
     let callIdx = 0;

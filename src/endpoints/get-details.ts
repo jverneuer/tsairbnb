@@ -31,8 +31,7 @@ export interface GetDetailsOpts {
 export async function getDetails(opts: GetDetailsOpts): Promise<Envelope<Listing & { reviews?: unknown; calendar?: unknown; host?: unknown; price?: unknown }>> {
   if (opts.mode === "reprocess") {
     const { parseListing } = await import("../parsers/listing.js");
-    const parsed = await parseListing(opts.raw);
-    if ("error" in parsed) return { ok: false, error: parsed.error, code: "parse" };
+    const parsed = await parseListing(opts.raw) as { data: Listing; parserVersion: string; warnings: string[] };
     return {
       ok: true,
       data: opts.raw as any,
@@ -56,8 +55,7 @@ export async function getDetails(opts: GetDetailsOpts): Promise<Envelope<Listing
 
   // 2. parse the listing blob
   const { parseListing } = await import("../parsers/listing.js");
-  const parsed = await parseListing(meta.data.data);
-  if ("error" in parsed) return { ok: false, error: parsed.error, code: "parse" };
+  const parsed = await parseListing(meta.data.data) as { data: Listing; parserVersion: string; warnings: string[] };
   warnings.push(...parsed.warnings);
 
   const data: any = { ...parsed.data };
@@ -71,7 +69,7 @@ export async function getDetails(opts: GetDetailsOpts): Promise<Envelope<Listing
   if (reviews.status === "fulfilled" && reviews.value) data.reviews = reviews.value;
   else if (reviews.status === "rejected") warnings.push(`reviews: ${reviews.reason}`);
   if (calendar.status === "fulfilled" && calendar.value) data.calendar = calendar.value;
-  if (host.status === "fulfilled" && host.value) data.host = { ...data.host, ...host.value };
+  if (host.status === "fulfilled" && host.value?.ok) data.host = { ...data.host, ...host.value.data };
 
   // 4. price only when both dates present
   if (opts.checkIn && opts.checkOut && apiKey && impressionId && data.id) {

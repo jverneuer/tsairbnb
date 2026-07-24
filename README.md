@@ -25,10 +25,6 @@ tsairbnb port the same 17 endpoints to TypeScript, deploy them as a single Lambd
             └──────┬───────┘
                    │
             ┌──────┴───────┐
-            │  WAFv2 ACL    │  rate-based rule (e.g. 200 req/5min per IP)
-            └──────┬───────┘
-                   │
-            ┌──────┴───────┐
             │  Lambda fn    │  container image (linux/amd64 or arm64)
             │  (FunctionURL)│  bundles the curl-impersonate TLS-impersonation binary
             │               │
@@ -39,7 +35,11 @@ tsairbnb port the same 17 endpoints to TypeScript, deploy them as a single Lambd
             └───────────────┘
 ```
 
-The Lambda is one function with a dispatcher that routes `?endpoint=<name>` to the right handler. CloudFront Function URL is the origin (no API Gateway — simpler, cheaper, and the API is fully open). WAF sits in front. SSM Parameter Store holds the runtime-editable config (UA pool, hashes, locale). CloudWatch logs every `parse`/`http`/`block` telemetry event so you can alert on churn.
+The Lambda is one function with a dispatcher that routes `?endpoint=<name>` to the right handler. CloudFront Function URL is the origin (no API Gateway — simpler, cheaper, and the API is fully open). SSM Parameter Store holds the runtime-editable config (UA pool, hashes, locale). CloudWatch logs every `parse`/`http`/`block` telemetry event so you can alert on churn.
+
+### WAF (optional)
+
+WAFv2 is not attached by default. CloudFront-scoped WAF requires deployment to **us-east-1**, which limits region choice. If you need rate-limiting, create a `CLOUDFRONT`-scoped WebACL in us-east-1 and attach it to the CloudFront distribution manually or via a separate CDK stack. The `cdk/lib/waf.ts` module is preserved for reference.
 
 ## The single most important technical fact
 
@@ -162,12 +162,12 @@ Runtime config lives in SSM at `/tsairbnb/endpoint-config` (JSON). Edit there to
 
 ```bash
 export CDK_DEFAULT_ACCOUNT=123456789012
-export CDK_DEFAULT_REGION=us-east-1
+export CDK_DEFAULT_REGION=eu-west-1   # or any region; defaults to eu-west-1
 npx cdk bootstrap
 npx cdk deploy
 ```
 
-The stack creates: ECR repo, Lambda (container image with curl-impersonate), CloudFront distribution, WAFv2 WebACL with a rate-based rule, SSM parameter, CloudWatch log group. Outputs the public CloudFront URL.
+The stack creates: Lambda (container image with curl-impersonate), CloudFront distribution, SSM parameter, CloudWatch log group. Outputs the public CloudFront URL. WAFv2 is optional — see above.
 
 ## Test
 

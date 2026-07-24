@@ -135,6 +135,15 @@ describe("fetchStaysSearchHash", () => {
     setClient(client);
     expect(await fetchStaysSearchHash()).toBe(VALID_HASH);
   });
+  it("handles bundle with no JS paths (jsPaths empty)", async () => {
+    const client = mockClient({
+      "airbnb.com/": BUNDLE_URL,
+      "asyncRequire": `${MODULE_PATH}`,
+      [MODULE_PATH]: `name:"StaysSearch" sha256Hash:"${VALID_HASH}"`,
+    }, "no hashes here");
+    setClient(client);
+    expect(await fetchStaysSearchHash()).toBe(VALID_HASH);
+  });
   it("skips fallback when module chunk has zero hashes", async () => {
     // all.length === 0 → fallback skipped, continues to next candidate
     const OTHER = "common/frontend/stays-search/routes/OtherRoute/OtherRoute.prepare.js";

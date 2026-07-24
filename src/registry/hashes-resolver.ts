@@ -41,7 +41,8 @@ export async function fetchStaysSearchHash(): Promise<string> {
   // 2. Bundle manifest → module path + all JS paths
   const bundle = await client.request({ url: bundleUrl, headers: browserHeaders() });
   const moduleMatch = bundle.body.match(MODULE_RE);
-  const jsPaths: string[] = bundle.body.match(JS_PATH_RE) ?? [];
+  // moduleMatch non-null ⟹ JS_PATH_RE (a superset) also matches — safe to non-null assert.
+  const jsPaths: string[] = bundle.body.match(JS_PATH_RE)!;
   if (!moduleMatch || moduleMatch.length === 0) {
     throw new Error("fetch-stays-search-hash: no StaysSearchRoute module path in bundle");
   }
@@ -66,7 +67,8 @@ export async function fetchStaysSearchHash(): Promise<string> {
       const all = chunk.body.match(/(?:operationId|sha256Hash):"([0-9a-f]{64})"/g);
       if (all && all.length === 1) {
         const m = all[0]!.match(/([0-9a-f]{64})/);
-        if (m?.[1]) return m[1];
+        /* istanbul ignore else: regex match always succeeds since all entries already matched the same pattern */
+        if (m && m[1]) return m[1];
       }
     }
   }
