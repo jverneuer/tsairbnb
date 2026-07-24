@@ -202,6 +202,13 @@ describe("searchStrategies", () => {
     searchStrategies[0]!.parse({ data: { presentation: { staysSearch: { results: { searchResults: [] } } } } }, warnings);
     expect(warnings.some((w) => w.includes("no StaySearchResult"))).toBe(true);
   });
+  it("stays-search nextCursor falls back to null when paginationInfo missing", () => {
+    const result = searchStrategies[0]!.parse(
+      { data: { presentation: { staysSearch: { results: { searchResults: [{ __typename: "StaySearchResult", demandStayListing: { id: "RGVtYW5kU3RheUxpc3Rpbmc6MTIz" } }] } } } } },
+      [],
+    );
+    expect(result.nextCursor).toBeNull();
+  });
   it("bare returns empty + warning", () => {
     const warnings: string[] = [];
     const result = searchStrategies[1]!.parse({}, warnings);

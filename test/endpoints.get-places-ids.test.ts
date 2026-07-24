@@ -45,4 +45,8 @@ describe("getPlacesIds", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toEqual([{ data: {} }]);
   });
+  it("live reprocess falls back to raw when no autocomplete_terms key", async () => {
+    const result = await getPlacesIds({ mode: "reprocess", raw: { foo: "bar" } });
+    expect(result).toMatchObject({ ok: true, data: [{ foo: "bar" }] });
+  });
 });

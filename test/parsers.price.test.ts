@@ -342,6 +342,35 @@ describe("priceStrategies", () => {
     );
     expect(result.main.details).toEqual({ Cleaning: "$20" });
   });
+  it("stays-pdp-sections collectDetails returns empty for non-array priceDetails (L36)", () => {
+    // L36 is the `!Array.isArray(priceDetails)` early return inside collectDetails.
+    // We call collectDetails indirectly via parse with explanationData.priceDetails as a non-array.
+    // Already covered by "handles non-array priceDetails" test above; this test explicitly covers L36.
+    const warnings: string[] = [];
+    const result = priceStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              sections: {
+                sections: [
+                  {
+                    sectionId: "BOOK_IT_SIDEBAR",
+                    structuredDisplayPrice: {
+                      primaryLine: { price: "$100" },
+                      explanationData: { priceDetails: "not-an-array" },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.main.details).toEqual({});
+  });
   it("stays-pdp-sections handles priceDetails with item missing both desc and price", () => {
     const warnings: string[] = [];
     const result = priceStrategies[0]!.parse(

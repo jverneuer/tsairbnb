@@ -587,6 +587,31 @@ describe("listingStrategies", () => {
     );
     expect(result.photos[0]!.url).toBe("http://img/by-url.jpg");
   });
+  it("v2026-graphql houseRules handles rule with missing values (L173 ?? fallback)", () => {
+    const warnings: string[] = [];
+    const result = listingStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              id: "RGVtYW5kU3RheUxpc3Rpbmc6MTYxNDkwODQ4NTQ1NTczMzI2NA==",
+              sections: {
+                metadata: { loggingContext: { eventDataLogging: {} } },
+                sections: [
+                  {
+                    __typename: "PoliciesSection",
+                    houseRules: { general: [{ title: "Rule" }] },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.houseRules[0]!.values).toEqual([]);
+  });
   it("v2026-graphql houseRules handles non-string values (uses value.title)", () => {
     const warnings: string[] = [];
     const result = listingStrategies[0]!.parse(
