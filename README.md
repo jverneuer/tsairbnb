@@ -1,5 +1,7 @@
 # tsairbnb
 
+[![test](https://github.com/jverneuer/tsairbnb/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/jverneuer/tsairbnb/actions/workflows/test.yml?query=branch%3Amain)
+
 A TypeScript reimplementation of [pyairbnb](https://github.com/johnbalvin/pyairbnb/), with a different ambition: a **robust, always-JSON HTTP wrapper** around Airbnb that is hardened against Airbnb's constant churn, exposes every endpoint as a serverless function behind CloudFront, and is fully bootstrapped in TypeScript IaC.
 
 > **pyairbnb** by [John Balvin](https://github.com/johnbalvin/pyairbnb/) is the original reference implementation and the source of the upstream URLs, persisted-query hashes, response-JSON paths, and the StaysSearch dynamic-hash resolver pattern. This TypeScript port is a clean-room reimplementation informed by pyairbnb's API surface and the community's issue history. See [ATTRIBUTION.md](./ATTRIBUTION.md).

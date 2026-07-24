@@ -31,7 +31,7 @@ export function parsePriceString(s: string | undefined | null): Money | null {
   } else if (hasComma) {
     // Comma only — treat as decimal (€34,99) unless it's a thousands group (3 digits after, exactly)
     // hasComma guarantees split returns ≥2 elements, so [1] is always a string.
-    const after = raw.split(",")[1];
+    const after = raw.split(",")[1]!;
     amount = after.length === 3 ? Number(raw.replace(/,/g, "")) : Number(raw.replace(",", "."));
   } else {
     amount = Number(raw);

@@ -19,6 +19,7 @@ export async function experienceSearch(opts: ExperienceSearchMode): Promise<Enve
   if (opts.mode === "reprocess") {
     const { parseExperience } = await import("../parsers/experience.js");
     const parsed = await parseExperience(opts.raw);
+    if ("error" in parsed) return { ok: false, error: parsed.error, code: "no-strategy-matched", meta: { fetchedAt: null, endpoint: "experience-search", durationMs: 0, parserVersion: "none", warnings: [], mode: "reprocess" } };
     return { ok: true, data: parsed.data.hits, raw: opts.raw, meta: { fetchedAt: null, endpoint: "experience-search", durationMs: 0, parserVersion: parsed.parserVersion, warnings: parsed.warnings, mode: "reprocess" } };
   }
 
