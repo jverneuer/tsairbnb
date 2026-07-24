@@ -61,10 +61,11 @@ describe("CurlImpersonateClient", () => {
     setClient(new CurlImpersonateClient());
   });
 
-  it("buildArgs includes impersonate flag and headers", () => {
+  it("buildArgs includes silent flags and headers", () => {
     const client = new CurlImpersonateClient();
     const args = (client as any).buildArgs({ url: "http://x.com", headers: { "User-Agent": "ua" } });
-    expect(args).toContain("--impersonate=chrome124");
+    expect(args).toContain("-s");
+    expect(args).toContain("-S");
     expect(args).toContain("http://x.com");
     expect(args).toContain("-H");
     expect(args).toContain("User-Agent: ua");
@@ -117,7 +118,7 @@ describe("CurlImpersonateClient", () => {
 
     expect(mockSpawn).toHaveBeenCalledWith(
       "curl-impersonate-chrome",
-      expect.arrayContaining(["-s", "-S", "--impersonate=chrome124", "http://example.com"]),
+      expect.arrayContaining(["-s", "-S", "http://example.com"]),
       { timeout: 30000 },
     );
     expect(response.status).toBe(200);

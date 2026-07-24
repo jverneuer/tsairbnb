@@ -18,6 +18,7 @@ export async function searchAllFromUrl(opts: SearchFromUrlMode): Promise<Envelop
   if (opts.mode === "reprocess") {
     const { parseSearch } = await import("../parsers/search.js");
     const parsed = await parseSearch(opts.raw);
+    if ("error" in parsed) return { ok: false, error: parsed.error, code: "no-strategy-matched", meta: { fetchedAt: null, endpoint: "search-all-from-url", durationMs: 0, parserVersion: "none", warnings: [], mode: "reprocess" } };
     return { ok: true, data: [...parsed.data.hits], raw: opts.raw, meta: { fetchedAt: null, endpoint: "search-all-from-url", durationMs: 0, parserVersion: parsed.parserVersion, warnings: parsed.warnings, mode: "reprocess" } };
   }
 

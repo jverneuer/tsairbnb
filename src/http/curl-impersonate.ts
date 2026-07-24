@@ -26,12 +26,10 @@ export class CurlImpersonateClient implements HttpClient {
   }
 
   private buildArgs(req: HttpRequest): string[] {
-    const { tlsProfile } = getConfig();
     const proxy = pickProxy();
     const args = [
       "-s",
       "-S", // silent but show errors
-      `--impersonate=${tlsProfile}`,
       "-X",
       req.method ?? "GET",
       "-w",
