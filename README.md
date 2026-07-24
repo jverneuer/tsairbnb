@@ -45,6 +45,18 @@ WAFv2 is not attached by default. CloudFront-scoped WAF requires deployment to *
 
 pyairbnb depends on `curl_cffi`'s `impersonate="chrome124"` to get past Airbnb's Cloudflare edge. `curl_cffi` wraps [curl-impersonate](https://github.com/lwthiker/curl-impersonate) — a forked curl + patched BoringSSL that impersonates a real browser's TLS + HTTP/2 fingerprint. Plain Node `fetch`/`undici` emits a non-browser JA3/H2 fingerprint and gets 403'd. **This is the #1 porting risk**, and it drives the Lambda runtime decision: the Lambda MUST be a container image bundling the curl-impersonate binary. See [ATTRIBUTION.md](./ATTRIBUTION.md).
 
+### Migration path: [impers](https://github.com/lexiforest/impers)
+
+[impers](https://github.com/lexiforest/impers) is a TypeScript binding for curl-impersonate via [Koffi FFI](https://koffi.dev/), effectively a Node.js-native `curl_cffi`. It uses the same [lexiforest/curl-impersonate](https://github.com/lexiforest/curl-impersonate) fork (actively maintained, Chrome up to 142), supports HTTP/2 and HTTP/3, and loads the shared library in-process — no shell spawning.
+
+**Why this matters:** The current `CurlImpersonateClient` spawns a subprocess per request (~5-15ms overhead). impers would call libcurl directly via FFI, eliminating subprocess overhead and the need for the tarball install in the Dockerfile. The `HttpClient` interface is a single `request()` method with 7 consumers — swapping implementations is trivial.
+
+** blockers for migration:**
+1. **Lambda shared library loading** — impers auto-downloads `libcurl-impersonate.so` on first use, but Lambda has a read-only filesystem. You'd need to bundle the `.so` in the container image and set `LIBCURL_PATH`. The lexiforest fork provides prebuilt Linux x86_64/aarch64 binaries.
+2. **Alpha status** — impers is marked alpha; APIs may change without major version bump.
+3. **HTTP/2 multiplexing** — the current subprocess-per-request model naturally gives connection isolation. An in-process libcurl would need careful session/connection lifecycle management to avoid stale connections or memory leaks in Lambda's sandbox.
+4. **No Lambda-specific testing yet** — needs validation against Airbnb's actual Cloudflare edge.
+
 ## Quick start
 
 ```bash

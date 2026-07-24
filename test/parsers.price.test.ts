@@ -80,6 +80,83 @@ describe("priceStrategies", () => {
     expect(result.main.details).toEqual({});
     expect(warnings.some((w) => w.includes("no price shape"))).toBe(true);
   });
+  it("stays-pdp-sections falls back to price when discountedPrice and originalPrice missing", () => {
+    const warnings: string[] = [];
+    const result = priceStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              sections: {
+                sections: [
+                  {
+                    sectionId: "BOOK_IT_SIDEBAR",
+                    structuredDisplayPrice: {
+                      primaryLine: { price: "$100" },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.main.price).toEqual({ amount: 100, currency: "$" });
+    expect(result.main.discountedPrice).toBeNull();
+    expect(result.main.originalPrice).toBeNull();
+  });
+  it("stays-pdp-sections falls back to empty string when all prices missing", () => {
+    const warnings: string[] = [];
+    const result = priceStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              sections: {
+                sections: [
+                  {
+                    sectionId: "BOOK_IT_SIDEBAR",
+                    structuredDisplayPrice: {
+                      primaryLine: {},
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.main.price).toBeNull();
+  });
+  it("stays-pdp-sections uses originalPrice when discountedPrice missing", () => {
+    const warnings: string[] = [];
+    const result = priceStrategies[0]!.parse(
+      {
+        data: {
+          presentation: {
+            stayProductDetailPage: {
+              sections: {
+                sections: [
+                  {
+                    sectionId: "BOOK_IT_SIDEBAR",
+                    structuredDisplayPrice: {
+                      primaryLine: { originalPrice: "$120", price: "$100" },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      warnings,
+    );
+    expect(result.main.price).toEqual({ amount: 120, currency: "$" });
+  });
   it("stays-pdp-sections handles non-array priceDetails", () => {
     const warnings: string[] = [];
     const result = priceStrategies[0]!.parse(
