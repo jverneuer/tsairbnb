@@ -22,7 +22,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("returns hash when candidate chunk matches HASH_PATTERNS", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `some/path.js ${MODULE_PATH} other/path.js`,
       [MODULE_PATH]: `name:"StaysSearch" sha256Hash:"${VALID_HASH}"`,
     });
@@ -31,14 +31,14 @@ describe("fetchStaysSearchHash", () => {
   });
 
   it("throws when homepage has no bundle manifest URL", async () => {
-    const client = mockClient({ "airbnb.com/": "no bundle here" });
+    const client = mockClient({ "airbnb.com": "no bundle here" });
     setClient(client);
     await expect(fetchStaysSearchHash()).rejects.toThrow("no bundle manifest URL");
   });
 
   it("throws when bundle has no StaysSearchRoute module path", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": "some/other/path.js",
     });
     setClient(client);
@@ -47,7 +47,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("throws when no candidate chunk matches any pattern", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
     }, "no hashes here");
     setClient(client);
@@ -56,7 +56,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("falls back to single hash in exact module chunk", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       [MODULE_PATH]: `operationId:"${VALID_HASH}"`,
     });
@@ -66,7 +66,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("returns hash from non-module candidate chunk", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       "b.js": `name:"StaysSearch" sha256Hash:"${VALID_HASH}"`,
     }, "no hashes here");
@@ -76,7 +76,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("returns hash from operationId-first pattern", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       [MODULE_PATH]: `operationId:"${VALID_HASH}" name:"StaysSearch"`,
     }, "no hashes here");
@@ -86,7 +86,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("returns hash from /api/v3/StaysSearch/ pattern", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       [MODULE_PATH]: `/api/v3/StaysSearch/${VALID_HASH}`,
     }, "no hashes here");
@@ -96,7 +96,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("returns hash from StaysSearch/<hash> pattern", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       [MODULE_PATH]: `StaysSearch/${VALID_HASH}`,
     }, "no hashes here");
@@ -106,7 +106,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("throws when module chunk has multiple hashes", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       [MODULE_PATH]: `operationId:"${VALID_HASH}" operationId:"${"b".repeat(64)}"`,
     }, "no hashes here");
@@ -116,7 +116,7 @@ describe("fetchStaysSearchHash", () => {
 
   it("throws when module chunk has no hashes", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `a.js ${MODULE_PATH} b.js`,
       [MODULE_PATH]: `no hashes here`,
     }, "no hashes here");
@@ -128,7 +128,7 @@ describe("fetchStaysSearchHash", () => {
     // When module path is not in jsPaths, indexOf returns -1, so start = max(0, -1-3) = 0, end = -1+36 = 35
     // The module path is still prepended to candidates, so it gets probed
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `${MODULE_PATH} some/other/path.js`,
       [MODULE_PATH]: `name:"StaysSearch" sha256Hash:"${VALID_HASH}"`,
     }, "no hashes here");
@@ -137,7 +137,7 @@ describe("fetchStaysSearchHash", () => {
   });
   it("handles bundle with no JS paths (jsPaths empty)", async () => {
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `${MODULE_PATH}`,
       [MODULE_PATH]: `name:"StaysSearch" sha256Hash:"${VALID_HASH}"`,
     }, "no hashes here");
@@ -148,7 +148,7 @@ describe("fetchStaysSearchHash", () => {
     // all.length === 0 → fallback skipped, continues to next candidate
     const OTHER = "common/frontend/stays-search/routes/OtherRoute/OtherRoute.prepare.js";
     const client = mockClient({
-      "airbnb.com/": BUNDLE_URL,
+      "airbnb.com": BUNDLE_URL,
       "asyncRequire": `${MODULE_PATH} ${OTHER}`,
       [MODULE_PATH]: `no hashes`,
       [OTHER]: `name:"StaysSearch" sha256Hash:"${VALID_HASH}"`,

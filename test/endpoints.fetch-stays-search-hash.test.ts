@@ -21,7 +21,7 @@ describe("fetchStaysSearchHashEndpoint", () => {
   });
   it("live resolves dynamic hash", async () => {
     setClient({ request: vi.fn().mockImplementation((req: any) => {
-      if (req.url === "https://www.airbnb.com/") return Promise.resolve({ status: 200, body: 'https://a0.muscache.com/airbnb/static/packages/web/en/frontend/airmetro/browser/asyncRequire.abc.js' });
+      if (req.url === "https://www.airbnb.com") return Promise.resolve({ status: 200, body: 'https://a0.muscache.com/airbnb/static/packages/web/en/frontend/airmetro/browser/asyncRequire.abc.js' });
       if (req.url.includes("asyncRequire")) return Promise.resolve({ status: 200, body: 'common/frontend/stays-search/routes/StaysSearchRoute/StaysSearchRoute.prepare.abc.js' });
       return Promise.resolve({ status: 200, body: 'name:"StaysSearch" sha256Hash:"' + "a".repeat(64) + '"' });
     }) } as any);
