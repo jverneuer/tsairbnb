@@ -30,6 +30,7 @@ export class CurlImpersonateClient implements HttpClient {
     const args = [
       "-s",
       "-S", // silent but show errors
+      "-L", // follow 3xx redirects (does NOT follow POST form redirects)
       "-X",
       req.method ?? "GET",
       "-w",
