@@ -197,20 +197,22 @@ Runtime config lives in SSM at `/tsairbnb/endpoint-config` (JSON). Edit there to
 
 ## Deploy
 
-The stack deploys to **two regions** (eu-west-1 and us-east-1), each with its own Lambda + CloudFront + SSM.
+The stack deploys to **three regions** — eu-west-2 (London, UK), us-east-1 (N. Virginia, US), and eu-west-1 (Ireland, EU) — each with its own Lambda + CloudFront + SSM.
 
 ```bash
 export CDK_DEFAULT_ACCOUNT=123456789012
 
-# Bootstrap both regions (one-time)
-npx cdk bootstrap --profile default aws://123456789012/eu-west-1
+# Bootstrap all regions (one-time)
+npx cdk bootstrap --profile default aws://123456789012/eu-west-2
 npx cdk bootstrap --profile default aws://123456789012/us-east-1
+npx cdk bootstrap --profile default aws://123456789012/eu-west-1
 
-# Deploy both regions
+# Deploy all regions
 npm run deploy:all
 # Or deploy individually:
-npm run deploy:eu    # eu-west-1 only
-npm run deploy:us    # us-east-1 only
+npm run deploy:uk    # eu-west-2 (London)
+npm run deploy:us    # us-east-1 (N. Virginia)
+npm run deploy:ie    # eu-west-1 (Ireland)
 ```
 
 Each stack creates: Lambda (container image with curl-impersonate), CloudFront distribution, SSM parameter, CloudWatch log group. Outputs the public CloudFront URL for that region. WAFv2 is optional — see above.
